@@ -1,0 +1,43 @@
+{
+  "name": "codex-sift",
+  "version": "0.1.0",
+  "description": "Sift each Codex turn onto the cheapest model that can handle it. Judged by TypeSafe Jev, executed by the native Codex CLI.",
+  "type": "module",
+  "bin": {
+    "codex-sift": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "policy.yaml",
+    "skills",
+    "scripts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "dev": "tsx src/cli.ts",
+    "test": "tsx --test src/*.test.ts",
+    "start": "node dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "codex",
+    "jev",
+    "typesafe",
+    "model-routing",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.17",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
