@@ -1,37 +1,37 @@
 import { loadPolicy } from "./policy.js";
-import { readLog } from "./log.js";
+import { readLog, type DecisionRecord } from "./log.js";
+import { formatUsage, summarizeUsage } from "./usage.js";
 
-export function runReport(): number {
+function parseSince(argv: string[]): Date | null {
+  const flag = argv.find((a) => a.startsWith("--since="));
+  if (!flag) return null;
+  const raw = flag.slice("--since=".length);
+  if (raw === "today") {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+export function runReport(argv: string[] = []): number {
+  const jsonMode = argv.includes("--json");
+  const liveOnly = argv.includes("--live");
+  const since = parseSince(argv);
   const policy = loadPolicy();
-  const rows = readLog();
+  let rows: DecisionRecord[] = readLog();
+  if (since) rows = rows.filter((row) => new Date(row.at) >= since);
+  if (liveOnly) rows = rows.filter((row) => !row.degraded);
   if (!rows.length) {
-    process.stdout.write("No decisions logged yet.\n");
+    process.stdout.write("No decisions logged yet. Use Codex through `codex-sift`, then rerun report.\n");
     return 1;
   }
-  const counts = new Map<string, number>();
-  let flagship = 0;
-  let actual = 0;
-  const flagshipName = policy.lanes.forge?.model || "gpt-5.6-sol";
-  const flagshipPrice = policy.prices_usd_per_1m[flagshipName] || 0;
-  for (const row of rows) {
-    counts.set(row.lane, (counts.get(row.lane) || 0) + 1);
-    const tokens = Math.max(800, row.prompt_chars) / 4;
-    const millions = tokens / 1_000_000;
-    flagship += millions * flagshipPrice;
-    actual += millions * (policy.prices_usd_per_1m[row.model] || 0);
+  const summary = summarizeUsage(policy, rows);
+  if (jsonMode) {
+    process.stdout.write(`${JSON.stringify({ summary, turns: rows.length }, null, 2)}\n`);
+    return 0;
   }
-  const mix = [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .map(([lane, n]) => `${lane}: ${n} (${((n / rows.length) * 100).toFixed(0)}%)`)
-    .join(", ");
-  const saved = Math.max(0, flagship - actual);
-  const lines = [
-    `turns: ${rows.length}`,
-    `mix: ${mix}`,
-    `degraded: ${rows.filter((r) => r.degraded).length}`,
-    `est. vs always-${flagshipName}: $${flagship.toFixed(4)} -> $${actual.toFixed(4)} (save $${saved.toFixed(4)})`,
-    `note: estimate uses prompt size only; Codex output tokens are not visible to Sift.`,
-  ];
-  process.stdout.write(`${lines.join("\n")}\n`);
+  process.stdout.write(`${formatUsage(summary)}\n`);
   return 0;
 }
