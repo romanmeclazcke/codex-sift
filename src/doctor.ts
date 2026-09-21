@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { loadLocalEnv } from "./env.js";
 import { resolveCodexBin } from "./launch.js";
 import { loadPolicy, siftHome } from "./policy.js";
 
@@ -21,20 +22,26 @@ function authMode(): string {
 }
 
 export async function runDoctor(): Promise<number> {
+  loadLocalEnv();
   const bin = resolveCodexBin();
   const policy = loadPolicy();
+  const userPolicy = join(siftHome(), "policy.yaml");
   const lines = [
     `codex binary: ${bin}`,
     `sift home: ${siftHome()}`,
     `policy lanes: ${Object.keys(policy.lanes).join(", ")}`,
+    `flash: ${policy.lanes.flash?.model}`,
+    `craft: ${policy.lanes.craft?.model}`,
+    `forge: ${policy.lanes.forge?.model}`,
     `virtual model: ${policy.virtual_model.slug}`,
     `TYPESAFE_API_KEY: ${process.env.TYPESAFE_API_KEY ? "set" : "MISSING"}`,
     `codex auth: ${authMode()}`,
     `codex config: ${maskExists(join(process.env.HOME || ".", ".codex", "config.toml")) ? "found" : "missing"}`,
+    `user policy: ${existsSync(userPolicy) ? userPolicy : "bundled defaults (run codex-sift setup)"}`,
   ];
   process.stdout.write(`${lines.join("\n")}\n`);
   if (!process.env.TYPESAFE_API_KEY) {
-    process.stderr.write("Set TYPESAFE_API_KEY from https://typesafe.ai to enable Jev routing.\n");
+    process.stderr.write("Set TYPESAFE_API_KEY or run `codex-sift setup` to save it.\n");
     return 1;
   }
   return 0;

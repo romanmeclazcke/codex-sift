@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { ensureInjectedCatalog } from "./catalog.js";
+import { loadLocalEnv } from "./env.js";
 import { loadPolicy, siftHome } from "./policy.js";
 import { startProxy } from "./proxy.js";
 import type { Policy } from "./types.js";
@@ -72,6 +73,7 @@ function forcedLane(argv: string[]): string | null {
 }
 
 export async function launchCodex(argv: string[], policy?: Policy): Promise<number> {
+  loadLocalEnv();
   const resolved = policy || loadPolicy();
   const bin = resolveCodexBin();
   const cleaned = argv.filter((a) => a !== "--sift-off" && !a.startsWith("--sift-lane="));
@@ -120,7 +122,12 @@ export async function launchCodex(argv: string[], policy?: Policy): Promise<numb
   }
 
   if (process.env.SIFT_QUIET !== "1") {
-    process.stderr.write(`codex-sift: routing via ${url}  (lanes: ${Object.keys(resolved.lanes).join(", ")})\n`);
+    process.stderr.write(
+      `codex-sift: routing via ${url}\n  flash=${resolved.lanes.flash.model}  craft=${resolved.lanes.craft.model}  forge=${resolved.lanes.forge.model}\n`,
+    );
+    if (!existsSync(join(siftHome(), "policy.yaml"))) {
+      process.stderr.write("Tip: run `codex-sift setup` and pick those models with 1, 2, 3.\n");
+    }
   }
 
   try {
