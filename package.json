@@ -19,6 +19,7 @@
     "prepare": "tsc",
     "dev": "tsx src/cli.ts",
     "test": "tsx --test src/*.test.ts",
+    "e2e": "tsx src/cli.ts e2e",
     "start": "node dist/cli.js"
   },
   "engines": {

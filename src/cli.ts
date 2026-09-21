@@ -1,23 +1,31 @@
 #!/usr/bin/env node
 import { copyFileSync, mkdirSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { runDemo } from "./demo.js";
 import { runDoctor } from "./doctor.js";
+import { loadLocalEnv } from "./env.js";
+import { runE2E } from "./e2e.js";
 import { runExplain } from "./explain.js";
 import { decideTurn } from "./jev.js";
 import { launchCodex } from "./launch.js";
 import { writeDecision } from "./log.js";
 import { bundledPolicyPath, loadPolicy, siftHome } from "./policy.js";
 import { runReport } from "./report.js";
+import { runModels, runSetup } from "./setup.js";
 
 const HELP = `codex-sift — route each Codex turn to the cheapest model that can handle it
 
 Usage:
   codex-sift [codex args...]     Launch Codex with Sift routing
+  codex-sift setup               Pick flash/craft/forge models by number
+  codex-sift models              List Codex models as 1, 2, 3
   codex-sift route "prompt"      Decide a lane without calling Codex
   codex-sift explain             Show the last routing decision
-  codex-sift report              Lane mix and estimated savings
+  codex-sift report              Lane mix and estimated Codex quota saved
+  codex-sift demo                Classify a sample coding day (Jev only)
+  codex-sift e2e                 Programming-prompt battery vs always-forge
   codex-sift doctor              Check Codex, auth, and Jev
-  codex-sift init                Copy policy.yaml to ~/.codex-sift/
+  codex-sift init                Copy bundled policy.yaml to ~/.codex-sift/
 
 Environment:
   TYPESAFE_API_KEY     Required for live Jev judgments
@@ -32,6 +40,7 @@ Flags:
 `;
 
 async function main(argv: string[]): Promise<number> {
+  loadLocalEnv();
   const [cmd, ...rest] = argv;
   if (cmd === "-h" || cmd === "--help" || cmd === "help") {
     process.stdout.write(HELP);
@@ -44,8 +53,12 @@ async function main(argv: string[]): Promise<number> {
   }
   if (cmd === "doctor") return runDoctor();
   if (cmd === "explain") return runExplain();
-  if (cmd === "report") return runReport();
+  if (cmd === "report") return runReport(rest);
+  if (cmd === "demo") return runDemo();
+  if (cmd === "e2e") return runE2E();
   if (cmd === "init") return runInit();
+  if (cmd === "setup") return runSetup(rest);
+  if (cmd === "models") return runModels();
   if (cmd === "route") return runRoute(rest);
 
   return launchCodex(argv);

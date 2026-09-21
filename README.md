@@ -29,11 +29,15 @@ cd codex-sift
 npm install
 npm run build
 npm link
+codex-sift setup
 ```
 
+`setup` lists your Codex models as `1, 2, 3`. You pick one for **flash**, **craft**, and **forge**. It can also save `TYPESAFE_API_KEY` to `~/.codex-sift/env` (mode 600) so you do not have to export it every session.
+
+Then:
+
 ```bash
-export TYPESAFE_API_KEY=ts_...   # https://typesafe.ai
-codex-sift doctor
+cd /path/to/your-project
 codex-sift
 ```
 
@@ -48,19 +52,43 @@ codex-sift resume --last
 
 | Command | Purpose |
 |---|---|
+| `codex-sift setup` | Onboarding: pick lane models by number |
+| `codex-sift models` | Print the numbered Codex catalog |
 | `codex-sift` | Interactive Codex with routing |
 | `codex-sift route "…"` | Decide a lane; do not start Codex |
 | `codex-sift explain` | Print the last decision |
-| `codex-sift report` | Lane mix and a rough savings estimate |
+| `codex-sift report` | Quota saved vs always-forge (`--live`, `--since=today`, `--json`) |
+| `codex-sift demo` | Classify a sample coding day with Jev; no Codex usage |
 | `codex-sift doctor` | Codex binary, auth, Jev key |
 | `codex-sift init` | Copy `policy.yaml` to `~/.codex-sift/` |
 | `--sift-off` | Bypass the proxy for one invocation |
 
 Inside Codex, `$sift-explain` (skill installed on launch) reads `~/.codex-sift/last.json`.
 
+## Show the savings
+
+Codex with a ChatGPT subscription bills **quota**, not API invoices. Sift’s claim is: the same coding day uses fewer forge-tier turns.
+
+1. Work normally through `codex-sift` for a session.
+2. In another terminal:
+
+```bash
+codex-sift report --live --since=today
+```
+
+That prints lane mix and “usage vs always-Sol”. Degraded turns (Jev down) are excluded so the number is not inflated.
+
+To show the idea without burning Codex quota, Jev-classify a canned day:
+
+```bash
+codex-sift demo
+```
+
+Weights live in `policy.yaml` as `usage_weight` × `effort_weight`. Tune them against `/usage` after a week of real sessions.
+
 ## Lanes
 
-Edit `policy.yaml` or `~/.codex-sift/policy.yaml`. First matching rule wins.
+Edit the lanes in `~/.codex-sift/policy.yaml`, or run `codex-sift setup` again and type `1`, `2`, `3`. First matching rule wins.
 
 | Lane | Default model | Use |
 |---|---|---|
