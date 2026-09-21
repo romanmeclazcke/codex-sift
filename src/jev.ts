@@ -42,6 +42,10 @@ const QUESTIONS = {
     type: "noul",
     instructions: "Will span many files or shared contracts",
   },
+  is_chitchat: {
+    type: "noul",
+    instructions: "This is a greeting, thanks, or small talk with no coding task",
+  },
 };
 
 export class JevUnavailable extends Error {
@@ -78,7 +82,9 @@ export function answersToSignals(answers: Record<string, JevAnswer>, hasImage: b
   const kind = answers.task_kind || {};
   const difficulty = answers.difficulty || {};
   const kindConf = typeof kind.confidence === "number" ? kind.confidence : 1;
-  const diffConf = typeof difficulty.confidence === "number" ? difficulty.confidence : 1;
+  const diffConf = typeof difficulty.confidence === "number" ? difficulty.confidence : 0;
+  const confidences = [kindConf];
+  if (diffConf > 0) confidences.push(diffConf);
   return {
     task_kind: kind.choice || "edit",
     task_kind_confidence: kindConf,
@@ -88,7 +94,8 @@ export function answersToSignals(answers: Record<string, JevAnswer>, hasImage: b
     needs_planning: readNoul(answers.needs_planning),
     high_stakes: readNoul(answers.high_stakes),
     cross_cutting: readNoul(answers.cross_cutting),
-    confidence: Math.min(kindConf, diffConf),
+    is_chitchat: readNoul(answers.is_chitchat),
+    confidence: Math.min(...confidences),
     has_image: hasImage,
   };
 }

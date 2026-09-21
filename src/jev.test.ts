@@ -19,3 +19,16 @@ test("maps Jev answers onto routing signals", () => {
   assert.equal(signals.confidence, 0.7);
   assert.equal(signals.needs_reasoning, 0.88);
 });
+
+test("zero difficulty confidence is an abstention, not a panic", () => {
+  const signals = answersToSignals(
+    {
+      task_kind: { choice: "ask", confidence: 0.86 },
+      difficulty: { score: 1.06, confidence: 0 },
+      is_chitchat: { noul: 0.94 },
+    },
+    false,
+  );
+  assert.equal(signals.confidence, 0.86);
+  assert.equal(signals.is_chitchat, 0.94);
+});

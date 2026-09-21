@@ -1,8 +1,9 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse as parseYaml } from "yaml";
+import { parse as parseYaml, stringify as stringifyYaml } from "yaml";
 import { evalWhen } from "./expr.js";
+import type { CatalogChoice } from "./menu.js";
 import type { Decision, LaneName, Policy, Signals } from "./types.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -58,6 +59,8 @@ function normalizePolicy(raw: unknown): Policy {
     },
     lanes: p.lanes,
     prices_usd_per_1m: p.prices_usd_per_1m || {},
+    usage_weight: p.usage_weight || {},
+    effort_weight: p.effort_weight || {},
     rules: (p.rules || []).map((rule) => ({
       ...rule,
       when: String(rule.when),
@@ -72,6 +75,8 @@ function mergePolicy(base: Policy, overlay: Policy): Policy {
     virtual_model: { ...base.virtual_model, ...overlay.virtual_model },
     lanes: { ...base.lanes, ...overlay.lanes },
     prices_usd_per_1m: { ...base.prices_usd_per_1m, ...overlay.prices_usd_per_1m },
+    usage_weight: { ...base.usage_weight, ...overlay.usage_weight },
+    effort_weight: { ...base.effort_weight, ...overlay.effort_weight },
     rules: overlay.rules.length ? overlay.rules : base.rules,
   };
 }
@@ -86,6 +91,7 @@ export function signalsToValues(signals: Signals): Record<string, string | numbe
     needs_planning: signals.needs_planning,
     high_stakes: signals.high_stakes,
     cross_cutting: signals.cross_cutting,
+    is_chitchat: signals.is_chitchat,
     confidence: signals.confidence,
     has_image: signals.has_image,
   };
@@ -132,9 +138,45 @@ export function fallbackSignals(prompt: string, hasImage: boolean): Signals {
     needs_planning: looksHard ? 0.7 : 0.15,
     high_stakes: /\b(auth|prod|producti|migrat|secret|payment)\b/i.test(text) ? 0.75 : 0.1,
     cross_cutting: looksHard ? 0.7 : 0.1,
+    is_chitchat: /^(hola|hello|hi|hey|buenas|ok|thanks|gracias)[\s!?.]*$/i.test(text) ? 0.9 : 0.1,
     confidence: 0.4,
     has_image: hasImage,
   };
+}
+
+export function applyLanePicks(
+  policy: Policy,
+  models: CatalogChoice[],
+  picks: { flash: number; craft: number; forge: number },
+): Policy {
+  const pick = (n: number): CatalogChoice => {
+    const model = models[n - 1];
+    if (!model) throw new Error(`No model at position ${n}`);
+    return model;
+  };
+  const flash = pick(picks.flash);
+  const craft = pick(picks.craft);
+  const forge = pick(picks.forge);
+  return {
+    ...policy,
+    lanes: {
+      ...policy.lanes,
+      flash: { ...policy.lanes.flash, model: flash.slug },
+      craft: { ...policy.lanes.craft, model: craft.slug },
+      forge: { ...policy.lanes.forge, model: forge.slug },
+    },
+  };
+}
+
+export function saveUserPolicy(policy: Policy): string {
+  mkdirSync(siftHome(), { recursive: true });
+  const dest = join(siftHome(), "policy.yaml");
+  const body = stringifyYaml(policy, { lineWidth: 0 });
+  writeFileSync(
+    dest,
+    `# Written by \`codex-sift setup\`. Run setup again to pick models by number.\n${body}`,
+  );
+  return dest;
 }
 
 export function laneFromName(policy: Policy, lane: LaneName): Decision {

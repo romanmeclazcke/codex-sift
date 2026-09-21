@@ -27,11 +27,35 @@ prices_usd_per_1m:
   gpt-5.6-terra: 1.2
   gpt-5.6-sol: 3.6
   gpt-6-astra: 6.0
+  gpt-5.5: 4.0
+
+# Relative Codex quota vs forge. Tune with your /usage observations.
+usage_weight:
+  gpt-5.6-luna: 0.25
+  gpt-5.6-terra: 0.55
+  gpt-5.6-sol: 1.0
+  gpt-6-astra: 1.6
+  gpt-5.5: 1.1
+
+effort_weight:
+  low: 0.7
+  medium: 1.0
+  high: 1.35
+  xhigh: 1.7
 
 rules:
-  - when: "confidence < 0.55"
+  - when: "is_chitchat > 0.7"
+    lane: flash
+    reason: greeting or chitchat
+  - when: "task_kind in [ask, ops] and difficulty < 1.3 and high_stakes < 0.4"
+    lane: flash
+    reason: lookup or plumbing
+  - when: "task_kind == edit and difficulty < 1.3 and high_stakes < 0.4"
+    lane: flash
+    reason: localized cheap edit
+  - when: "confidence < 0.55 and (difficulty >= 1.5 or high_stakes > 0.4)"
     lane: forge
-    reason: Jev was unsure, escalate
+    reason: Jev was unsure on non-trivial work, escalate
   - when: "high_stakes > 0.7"
     lane: forge
     reason: high-stakes surface
@@ -44,12 +68,6 @@ rules:
   - when: "needs_reasoning > 0.6 and difficulty >= 1.3"
     lane: craft
     reason: needs real diagnosis
-  - when: "task_kind in [ask, ops] and difficulty < 1.2"
-    lane: flash
-    reason: lookup or plumbing
-  - when: "task_kind == edit and difficulty < 1.3 and high_stakes < 0.4"
-    lane: flash
-    reason: localized cheap edit
   - when: "difficulty < 1.5"
     lane: craft
     reason: everyday implementation

@@ -26,6 +26,8 @@ export type Policy = {
   };
   lanes: Record<LaneName, Lane>;
   prices_usd_per_1m: Record<string, number>;
+  usage_weight: Record<string, number>;
+  effort_weight: Record<string, number>;
   rules: PolicyRule[];
 };
 
@@ -38,6 +40,7 @@ export type Signals = {
   needs_planning: number;
   high_stakes: number;
   cross_cutting: number;
+  is_chitchat: number;
   confidence: number;
   has_image: boolean;
 };
