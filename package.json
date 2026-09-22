@@ -20,6 +20,7 @@
     "dev": "tsx src/cli.ts",
     "test": "tsx --test src/*.test.ts",
     "e2e": "tsx src/cli.ts e2e",
+    "e2e:report": "node dist/cli.js e2e --out reports/e2e-routing.md --json-out reports/e2e-routing.json",
     "start": "node dist/cli.js"
   },
   "engines": {

@@ -55,7 +55,7 @@ async function main(argv: string[]): Promise<number> {
   if (cmd === "explain") return runExplain();
   if (cmd === "report") return runReport(rest);
   if (cmd === "demo") return runDemo();
-  if (cmd === "e2e") return runE2E();
+  if (cmd === "e2e") return runE2E(rest);
   if (cmd === "init") return runInit();
   if (cmd === "setup") return runSetup(rest);
   if (cmd === "models") return runModels();
