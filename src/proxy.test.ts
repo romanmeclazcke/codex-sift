@@ -37,7 +37,9 @@ test("proxy rewrites sift model before forwarding a user turn", async () => {
       }
       seen.push({ url: req.url, model });
       res.writeHead(200, { "content-type": "text/event-stream" });
-      res.end('event: response.completed\ndata: {"type":"response.completed"}\n\n');
+      res.end(
+        'event: response.output_text.delta\ndata: {"type":"response.output_text.delta","item_id":"msg_1","output_index":0,"content_index":0,"delta":"Original answer"}\n\nevent: response.completed\ndata: {"type":"response.completed"}\n\n',
+      );
     });
   });
   process.env.SIFT_OPENAI_ORIGIN = upstream.origin;
@@ -49,14 +51,20 @@ test("proxy rewrites sift model before forwarding a user turn", async () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         model: "sift",
+        stream: true,
         input: [{ role: "user", content: [{ type: "input_text", text: "what does package.json do?" }] }],
       }),
     });
     assert.equal(res.ok, true);
+    const body = await res.text();
     assert.equal(seen.length, 1);
     assert.equal(seen[0].url, "/v1/responses");
     assert.notEqual(seen[0].model, "sift");
     assert.ok(seen[0].model === "gpt-5.6-luna" || seen[0].model === "gpt-5.6-terra" || seen[0].model === "gpt-5.6-sol");
+    assert.match(body, /response\.output_text\.delta/);
+    assert.match(body, /Model used: gpt-5\.6-terra · craft/);
+    assert.match(body, /Token headroom: 100%/);
+    assert.match(body, /Task-adjusted headroom \(Jev\): unavailable/);
   } finally {
     await new Promise<void>((r) => proxy.server.close(() => r()));
     await new Promise<void>((r) => upstream.server.close(() => r()));

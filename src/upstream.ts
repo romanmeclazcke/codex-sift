@@ -1,6 +1,7 @@
 import http from "node:http";
 import https from "node:https";
 import type { IncomingMessage, RequestOptions } from "node:http";
+import type { Transform } from "node:stream";
 import { URL } from "node:url";
 
 export type AuthMode = "chatgpt" | "api";
@@ -98,6 +99,7 @@ export function pipeUpstream(
   body: Buffer | undefined,
   incoming: IncomingMessage,
   outgoing: http.ServerResponse,
+  transform?: (headers: http.OutgoingHttpHeaders) => Transform | undefined,
 ): void {
   const opts: RequestOptions = {
     protocol: url.protocol,
@@ -115,8 +117,20 @@ export function pipeUpstream(
       if (["connection", "keep-alive", "transfer-encoding"].includes(key.toLowerCase())) continue;
       outHeaders[key] = value;
     }
+    const body = transform?.(outHeaders);
+    if (body) {
+      delete outHeaders["content-length"];
+      delete outHeaders.etag;
+      delete outHeaders["content-md5"];
+      delete outHeaders.digest;
+    }
     outgoing.writeHead(up.statusCode || 502, outHeaders);
-    up.pipe(outgoing);
+    if (body) {
+      body.on("error", (err) => outgoing.destroy(err));
+      up.pipe(body).pipe(outgoing);
+    } else {
+      up.pipe(outgoing);
+    }
   });
   req.on("error", (err) => {
     if (outgoing.headersSent) {

@@ -194,6 +194,72 @@ A ChatGPT token is not valid on the platform API. Do not point this proxy at `ap
 statusLine = "node /absolute/path/to/codex-sift/scripts/statusline.js"
 ```
 
+## Model and context indicators
+
+Sift appends a small italic footer to routed, uncompressed streamed text responses:
+
+```text
+Model used: gpt-5.6-terra · craft
+Estimated context after response: 58% used
+Token headroom: 82% · Task-adjusted headroom (Jev): 78%
+```
+
+These are heuristic capacity indicators, **not** calibrated probabilities of a
+correct answer or actual Codex token-usage figures. The scores are calculated
+for the context at the end of the response, including an estimate of the response
+text's tokens. Sift never pauses
+or blocks execution because of these scores. If Jev is unavailable, the token-only
+score still appears and the task-adjusted field says `unavailable`. Set
+`SIFT_RESPONSE_FOOTER=0` to disable the footer.
+Non-SSE or compressed responses are forwarded unchanged; Sift omits the footer
+for those responses rather than altering their encoding or content.
+
+## Context effectiveness estimate
+
+Sift estimates input tokens before each new user turn, reads the selected model's
+context window from Codex's local model catalog, and asks Jev whether the task is
+likely to need substantial additional context. The request is always sent to the
+selected Codex model. When streamed response text is complete, Sift estimates its
+tokens too and displays the resulting context state in the response footer.
+
+The task-adjusted score measures pressure from the request plus response text
+relative to the context window and likely context growth. It does not
+measure prompt quality, intrinsic task difficulty, or actual success probability.
+Input tokens are estimated as the UTF-8 byte length of the JSON request divided
+by four; response text uses the same approximation. Neither is counted with the
+model tokenizer. Hidden reasoning, tool payloads, images, and other non-text
+content can make the end-of-turn state especially uncertain.
+By default, both scores remain 100 while estimated input uses up to 50% of the
+window. Context pressure rises between 50% and 95%; Jev's estimate of likely
+additional context controls how strongly that pressure lowers the task-adjusted
+score. Jev is called for each new task so both scores can appear in the response
+footer. If Jev is unavailable, the task-adjusted score is omitted, but execution
+continues normally.
+
+The scoring rule is deliberately simple. Let `p` be context pressure, linearly
+scaled from 0 at `full_score_until_percent` to 1 at
+`max_pressure_at_percent`, and let `g` be Jev's 0–1 estimate that substantial
+additional context will be needed. Then `token-only = round(100 × (1 − p))`
+and `task-adjusted = round(token-only × (1 − 0.35 × g × p))`. At or above
+`max_pressure_at_percent`, both scores are 0. The 0.35 adjustment is a heuristic,
+not an empirically calibrated value.
+
+Configure it in `~/.codex-sift/policy.yaml`:
+
+```yaml
+effectiveness:
+  context_window_tokens: 0 # 0 = use Codex's model catalog
+  full_score_until_percent: 50 # no context penalty up to this occupancy
+  max_pressure_at_percent: 95 # full context penalty at this occupancy
+```
+
+For a 272,000-token window, the defaults mean no context penalty up to roughly
+136,000 estimated input tokens and maximum context pressure at roughly 258,400.
+These values are policy thresholds, not measured model-performance guarantees.
+The first percentage must be lower than the second; both are percentages of the
+selected model's window. Set `context_window_tokens` to a positive number only
+when you want to override the catalog's total window size.
+
 ## Configuration
 
 | Variable | Meaning |
@@ -203,6 +269,7 @@ statusLine = "node /absolute/path/to/codex-sift/scripts/statusline.js"
 | `SIFT_POLICY` | Extra YAML overlay |
 | `SIFT_HOME` | Default `~/.codex-sift` |
 | `SIFT_DISABLED=1` | Disable routing |
+| `SIFT_RESPONSE_FOOTER=0` | Disable the response footer |
 | `CODEX_BIN` | Codex executable if it is not on `PATH` |
 | `SIFT_CHATGPT_ORIGIN` / `SIFT_OPENAI_ORIGIN` | Test upstreams |
 

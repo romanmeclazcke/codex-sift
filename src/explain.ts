@@ -12,6 +12,13 @@ export function runExplain(): number {
     `at: ${last.at}`,
     `lane: ${last.lane} -> ${last.model}${last.effort ? ` (effort ${last.effort})` : ""}`,
     `degraded: ${last.degraded ? "yes" : "no"}`,
+    ...(last.effectiveness ? [
+      `task-adjusted effectiveness: ${last.effectiveness.jevAvailable ? `${last.effectiveness.score}/100` : "Jev unavailable"}`,
+      `token-only effectiveness: ${last.effectiveness.tokenScore}/100`,
+      `estimated input: ${last.effectiveness.estimatedInputTokens} / ${last.effectiveness.contextWindowTokens} tokens`,
+      `context occupancy: ${Math.round(last.effectiveness.occupancy * 100)}%`,
+      `Jev context growth: ${last.effectiveness.jevAvailable ? last.effectiveness.needsMoreContext.toFixed(2) : "unavailable"}`,
+    ] : []),
     `jev_ms: ${last.jev_ms}`,
     `reason: ${last.reason.join("; ")}`,
     `task_kind: ${last.signals.task_kind} (confidence ${last.signals.task_kind_confidence.toFixed(2)})`,

@@ -19,6 +19,11 @@ export type Policy = {
   jev_timeout_ms: number;
   min_confidence: number;
   on_jev_down: LaneName;
+  effectiveness: {
+    context_window_tokens: number;
+    full_score_until_percent: number;
+    max_pressure_at_percent: number;
+  };
   virtual_model: {
     slug: string;
     display_name: string;
@@ -54,6 +59,15 @@ export type Decision = {
   degraded: boolean;
   jev_ms: number;
   prompt_chars: number;
+  effectiveness?: {
+    score: number;
+    tokenScore: number;
+    jevAvailable: boolean;
+    estimatedInputTokens: number;
+    contextWindowTokens: number;
+    occupancy: number;
+    needsMoreContext: number;
+  };
 };
 
 export type SessionPin = {

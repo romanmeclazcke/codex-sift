@@ -6,6 +6,13 @@ jev_timeout_ms: 2500
 min_confidence: 0.55
 on_jev_down: craft
 
+# Estimate context state in the response footer. Use 0 to read model context
+# windows from Codex's catalog. These values never pause execution.
+effectiveness:
+  context_window_tokens: 0
+  full_score_until_percent: 50
+  max_pressure_at_percent: 95
+
 virtual_model:
   slug: sift
   display_name: Sift

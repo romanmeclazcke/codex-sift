@@ -32,6 +32,7 @@ Environment:
   SIFT_POLICY          Extra policy YAML path
   SIFT_HOME            Default ~/.codex-sift
   SIFT_DISABLED=1      Bypass routing
+  SIFT_RESPONSE_FOOTER=0  Do not append model and context indicators to responses
   CODEX_BIN            Codex executable
 
 Flags:
