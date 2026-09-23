@@ -2,7 +2,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, copyFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ensureInjectedCatalog } from "./catalog.js";
+import { contextWindows, ensureInjectedCatalog } from "./catalog.js";
 import { loadLocalEnv } from "./env.js";
 import { loadPolicy, siftHome } from "./policy.js";
 import { startProxy } from "./proxy.js";
@@ -95,13 +95,15 @@ export async function launchCodex(argv: string[], policy?: Policy): Promise<numb
 
   mkdirSync(siftHome(), { recursive: true });
   installSkill();
-  const { server, url } = await startProxy(resolved);
   let catalog = "";
+  let windows: Record<string, number> = {};
   try {
     catalog = ensureInjectedCatalog(bin, resolved);
+    windows = contextWindows(catalog);
   } catch {
     catalog = "";
   }
+  const { server, url } = await startProxy(resolved, windows);
 
   const configArgs = [
     "-c",

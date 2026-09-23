@@ -100,7 +100,7 @@ export function answersToSignals(answers: Record<string, JevAnswer>, hasImage: b
   };
 }
 
-export async function callJev(state: unknown, policy: Policy): Promise<JevResponse> {
+export async function callJev(state: unknown, policy: Policy, questions: Record<string, unknown> = QUESTIONS): Promise<JevResponse> {
   const apiKey = process.env.TYPESAFE_API_KEY;
   if (!apiKey) throw new JevUnavailable("TYPESAFE_API_KEY is not set");
   const controller = new AbortController();
@@ -115,7 +115,7 @@ export async function callJev(state: unknown, policy: Policy): Promise<JevRespon
       body: JSON.stringify({
         model: policy.jev_model,
         state,
-        questions: QUESTIONS,
+        questions,
       }),
       signal: controller.signal,
     });
@@ -130,6 +130,37 @@ export async function callJev(state: unknown, policy: Policy): Promise<JevRespon
     throw new JevUnavailable(message);
   } finally {
     clearTimeout(timer);
+  }
+}
+
+export async function estimateContextGrowth(
+  policy: Policy,
+  prompt: string,
+  model: string,
+  inputTokens: number,
+  contextWindow: number,
+): Promise<number | null> {
+  try {
+    const response = await callJev(
+      {
+        task: redact(prompt),
+        model,
+        estimated_input_tokens: inputTokens,
+        context_window_tokens: contextWindow,
+        remaining_tokens: Math.max(0, contextWindow - inputTokens),
+      },
+      policy,
+      {
+        needs_more_context: {
+          type: "noul",
+          instructions: "Will completing this coding task likely require the agent to inspect or generate substantial additional context beyond its current input? Judge context growth, not prompt quality or whether the task is intrinsically hard.",
+        },
+      },
+    );
+    const value = response.answers?.needs_more_context?.noul;
+    return typeof value === "number" && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : null;
+  } catch {
+    return null;
   }
 }
 

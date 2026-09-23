@@ -45,11 +45,22 @@ function normalizePolicy(raw: unknown): Policy {
   if (!raw || typeof raw !== "object") throw new Error("Policy must be a mapping");
   const p = raw as Partial<Policy>;
   if (!p.lanes || !p.rules) throw new Error("Policy needs lanes and rules");
+  const fullScoreUntil = p.effectiveness?.full_score_until_percent ?? 50;
+  const maxPressureAt = p.effectiveness?.max_pressure_at_percent ?? 95;
+  if (!Number.isFinite(fullScoreUntil) || !Number.isFinite(maxPressureAt) ||
+      fullScoreUntil < 0 || fullScoreUntil >= maxPressureAt || maxPressureAt > 100) {
+    throw new Error("effectiveness percentages must satisfy 0 <= full_score_until_percent < max_pressure_at_percent <= 100");
+  }
   return {
     jev_model: p.jev_model || "jev-1.13.0",
     jev_timeout_ms: p.jev_timeout_ms ?? 2500,
     min_confidence: p.min_confidence ?? 0.55,
     on_jev_down: p.on_jev_down || "craft",
+    effectiveness: {
+      context_window_tokens: p.effectiveness?.context_window_tokens ?? 0,
+      full_score_until_percent: fullScoreUntil,
+      max_pressure_at_percent: maxPressureAt,
+    },
     virtual_model: {
       slug: p.virtual_model?.slug || "sift",
       display_name: p.virtual_model?.display_name || "Sift",
@@ -73,6 +84,7 @@ function mergePolicy(base: Policy, overlay: Policy): Policy {
     ...base,
     ...overlay,
     virtual_model: { ...base.virtual_model, ...overlay.virtual_model },
+    effectiveness: { ...base.effectiveness, ...overlay.effectiveness },
     lanes: { ...base.lanes, ...overlay.lanes },
     prices_usd_per_1m: { ...base.prices_usd_per_1m, ...overlay.prices_usd_per_1m },
     usage_weight: { ...base.usage_weight, ...overlay.usage_weight },

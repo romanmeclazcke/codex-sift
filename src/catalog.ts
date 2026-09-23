@@ -78,3 +78,12 @@ export function ensureInjectedCatalog(codexBin: string, policy: Policy): string 
 export function readCatalog(path: string): Catalog {
   return JSON.parse(readFileSync(path, "utf8")) as Catalog;
 }
+
+export function contextWindows(path: string): Record<string, number> {
+  const windows: Record<string, number> = {};
+  for (const model of readCatalog(path).models) {
+    const window = model.context_window;
+    if (model.slug && typeof window === "number" && window > 0) windows[model.slug] = window;
+  }
+  return windows;
+}
