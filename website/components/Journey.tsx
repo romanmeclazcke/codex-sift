@@ -80,6 +80,7 @@ const CHAPTERS = [
   },
 ] as const;
 
+const EXAMPLE_STORAGE_KEY = "codex-sift-demo-request";
 const HERO_LEAD_IN = 0.015;
 const REQUEST_START = 0.06;
 const P_PROCESS = 0.7;
@@ -92,7 +93,30 @@ export function Journey() {
   const reduced = useReducedMotion();
   const laneTrackMask = useId();
   const [sample, setSample] = useState({ lane: "flash" as LaneId, index: 0 });
+  const initialized = useRef(false);
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+    let previous: string | null = null;
+    try {
+      previous = sessionStorage.getItem(EXAMPLE_STORAGE_KEY);
+    } catch {
+      // The demo can still select a random example with storage blocked.
+    }
+    const choices = LANE_ORDER.flatMap((lane) => LANES[lane].examples.map((_, index) => ({ lane, index })));
+    const available = choices.filter(({ lane, index }) => `${lane}:${index}` !== previous);
+    const next = available[Math.floor(Math.random() * available.length)];
+    setSample(next);
+  }, []);
+
   const { lane, index } = sample;
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(EXAMPLE_STORAGE_KEY, `${lane}:${index}`);
+    } catch {
+      // Storage is only needed to avoid repeats across reloads.
+    }
+  }, [lane, index]);
   const example = LANES[lane].examples[index];
   const [mode, setMode] = useState<Mode>(880);
   const [ready, setReady] = useState(false);
