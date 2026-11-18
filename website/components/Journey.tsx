@@ -49,7 +49,7 @@ function wrap(text: string, max: number): string[] {
 
 const CHAPTERS = [
   {
-    range: [0.07, 0.3],
+    range: [0.045, 0.3],
     eyebrow: "Request",
     title: "Every turn hits Sift first",
     body: "Codex has no hook that changes the model before a turn is billed. It does accept a custom model_provider. Sift runs a loopback Responses proxy on 127.0.0.1 and sees the turn before Codex spends it.",
@@ -81,6 +81,7 @@ const CHAPTERS = [
 ] as const;
 
 const HERO_LEAD_IN = 0.015;
+const REQUEST_START = 0.06;
 const P_PROCESS = 0.7;
 const P_RESP0 = 0.8;
 const P_RESP1 = 0.95;
@@ -138,14 +139,14 @@ export function Journey() {
     const scale = L.req / st.total;
 
     const dist = mapKeys(p, [
-      [0.06, 0],
+      [REQUEST_START, 0],
       [0.3, st.dRouterTop],
       [0.45, st.dRouterBot],
       [0.49, st.dBranch],
       [0.6, st.dLane],
       [0.69, st.dModel],
     ]);
-    const litDist = Math.max(dist, intro.current * 150);
+    const litDist = Math.max(dist, intro.current * 150 * (1 - clamp(p / 0.045)));
     const rp = clamp((p - P_RESP0) / (P_RESP1 - P_RESP0));
     const responding = p >= P_RESP0;
 
@@ -280,7 +281,7 @@ export function Journey() {
     });
     const chips = e.chips as HTMLElement | null;
     if (chips) {
-      const o = clamp((p - 0.05) / 0.04);
+      const o = clamp((p - 0.045) / 0.015);
       chips.style.opacity = o.toFixed(3);
       chips.style.visibility = o <= 0 ? "hidden" : "visible";
     }
@@ -407,7 +408,7 @@ export function Journey() {
     if (journey && stage) {
       const start = window.scrollY + journey.getBoundingClientRect().top;
       const distance = journey.offsetHeight - stage.clientHeight;
-      const requestStart = HERO_LEAD_IN + (1 - HERO_LEAD_IN) * 0.1;
+      const requestStart = HERO_LEAD_IN + (1 - HERO_LEAD_IN) * REQUEST_START;
       window.scrollTo({ top: start + distance * requestStart, behavior: reduced ? "instant" : "smooth" });
     }
   };
