@@ -178,7 +178,6 @@ export function Journey() {
     // lit trails
     setAttr("req", "stroke-dashoffset", L.req - litDist * scale);
     setAttr("resp", "stroke-dashoffset", L.resp - rp * L.resp);
-    setAttr("tail", "opacity", clamp((p - 0.93) / 0.05));
 
     // particle
     const pt = responding ? resp.getPointAtLength(rp * L.resp) : req.getPointAtLength(dist * scale);
@@ -191,7 +190,7 @@ export function Journey() {
     // Fade the particle around the lane badge and its subtitle.
     const aboveLane = 1 - clamp((pt.y - (g.laneY - 55)) / 20);
     const belowLane = clamp((pt.y - (g.laneY + 62)) / 18);
-    const po = responding ? outOfCard : fadeIn * intoCard * (1 - throughRouter) * Math.max(aboveLane, belowLane);
+    const po = responding ? outOfCard * (1 - clamp((rp - 0.96) / 0.04)) : fadeIn * intoCard * (1 - throughRouter) * Math.max(aboveLane, belowLane);
     setAttr("particle", "transform", `translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`);
     setAttr("particle", "opacity", po.toFixed(3));
     const phase = responding ? "resp" : "req";
@@ -233,6 +232,7 @@ export function Journey() {
     const u1 = clamp((dist - st.dRouterBot + 60) / (st.dBranch - st.dRouterBot + 110));
     const u2 = clamp((dist - st.dBranch) / (st.dLane - st.dBranch + 40));
     const decided = dist >= st.dBranch - 5;
+    setData("decision-pulse", "active", decided ? "1" : "0");
     setAttr("route-reason", "opacity", clamp((dist - (st.dBranch - 30)) / 25));
     setAttr("reply-preview", "opacity", clamp((rp - 0.65) / 0.3));
     for (const id of LANE_ORDER) {
@@ -506,7 +506,6 @@ export function Journey() {
             {/* lit trails */}
             <path ref={reg("req")} mask={`url(#${laneTrackMask})`} d={requestD(geo, lane)} fill="none" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeDasharray="3000" strokeDashoffset="3000" />
             <path ref={reg("resp")} d={returnD(geo, lane)} fill="none" stroke="#0EA5E9" strokeWidth="3" strokeLinecap="round" strokeDasharray="600" strokeDashoffset="600" />
-            <path ref={reg("tail")} d={`M ${geo.cx} ${geo.tui.y + 96} L ${geo.cx} ${geo.H}`} fill="none" stroke="#38BDF8" strokeWidth="3" opacity="0" />
 
             {/* origin node */}
             <g ref={reg("pill")}>
@@ -652,21 +651,37 @@ export function Journey() {
               );
             })}
 
+            <g ref={reg("decision-pulse")} className="journey-pulse" data-active="0" aria-hidden>
+              <circle cx={geo.cx} cy={geo.branchY} r="9" fill="none" stroke="#38BDF8" strokeWidth="2" />
+            </g>
+
             {/* destination */}
             <g ref={reg("tuiwrap")} opacity="0">
-              <g className="pill" data-on="0" ref={reg("tui")}>
-                <rect className="pf" x={geo.cx - 126} y={geo.tui.y - 20} width="252" height="40" rx="20" strokeWidth="1.5" />
-                <text x={geo.cx} y={geo.tui.y + 5} textAnchor="middle" fontSize={fs.sm} fill="#0F172A">
-                  Codex TUI · response
+              <g ref={reg("tui")} className="journey-terminal" data-on="0">
+                <rect x={geo.cx - 200} y={geo.tui.y - 20} width="400" height="132" rx="12" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.5" />
+                <path d={`M ${geo.cx - 200} ${geo.tui.y + 16} h400`} stroke="#E2E8F0" />
+                <text x={geo.cx - 182} y={geo.tui.y + 3} fontSize={fs.xs} fill="#0F172A">
+                  Codex TUI
                 </text>
+                <text x={geo.cx + 182} y={geo.tui.y + 3} fontSize={fs.xs - 1} fill="#64748B" textAnchor="end">
+                  simulated response
+                </text>
+                <g ref={reg("reply-preview")} opacity="0">
+                  <text x={geo.cx - 182} y={geo.tui.y + 38} fontSize={fs.xs - 1} fill="#0369A1">
+                    {lane} · {example.reason}
+                  </text>
+                  <text fontSize={fs.xs} fill="#0F172A">
+                    {wrap(example.response, 42).map((line, i) => (
+                      <tspan key={line} x={geo.cx - 182} y={geo.tui.y + 64 + i * (fs.xs + 6)}>
+                        {line}
+                      </tspan>
+                    ))}
+                  </text>
+                </g>
+                <g className="journey-pulse" aria-hidden>
+                  <circle cx={geo.cx} cy={geo.tui.y - 20} r="9" fill="none" stroke="#38BDF8" strokeWidth="2" />
+                </g>
               </g>
-              <text ref={reg("reply-preview")} textAnchor="middle" fontSize={fs.xs} fill="#334155" opacity="0">
-                {wrap(example.response, 42).map((line, i) => (
-                  <tspan key={line} x={geo.cx} y={geo.tui.y + 46 + i * (fs.xs + 6)}>
-                    {line}
-                  </tspan>
-                ))}
-              </text>
             </g>
 
             {/* request particle */}

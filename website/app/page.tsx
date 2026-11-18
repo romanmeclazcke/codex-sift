@@ -1,4 +1,3 @@
-import { CursorGlow } from "@/components/CursorGlow";
 import { Faq } from "@/components/Faq";
 import { FinalCta } from "@/components/FinalCta";
 import { HowItWorks } from "@/components/HowItWorks";
@@ -11,7 +10,6 @@ export default function Home() {
   return (
     <>
       <Nav />
-      <CursorGlow />
       <main>
         <Journey />
         <Results />

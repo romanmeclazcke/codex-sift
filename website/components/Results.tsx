@@ -39,8 +39,6 @@ export function Results() {
 
   return (
     <section id="results" className="relative border-t border-line bg-wash px-5 pb-28 pt-32">
-      <div aria-hidden className="absolute left-1/2 top-0 h-24 w-[3px] -translate-x-1/2 bg-accent" />
-      <div aria-hidden className="absolute left-1/2 top-24 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-accent shadow-[0_0_0_5px_#E0F2FE]" />
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
           <p className="eyebrow">Results</p>

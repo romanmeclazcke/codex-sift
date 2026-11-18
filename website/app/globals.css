@@ -222,3 +222,35 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+.journey-terminal > rect {
+  transition: stroke 180ms ease;
+}
+
+.journey-terminal[data-on="1"] > rect {
+  stroke: #38bdf8;
+}
+
+.journey-pulse circle {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .journey-pulse[data-active="1"] circle,
+  .journey-terminal[data-on="1"] .journey-pulse circle {
+    animation: journey-arrival 500ms ease-out;
+  }
+}
+
+@keyframes journey-arrival {
+  from {
+    opacity: 0.75;
+    transform: scale(0.75);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
