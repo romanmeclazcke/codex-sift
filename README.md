@@ -53,6 +53,22 @@ If you pin another model in `/model`, routing pauses. Pick **Sift** again to res
 
 ## Install
 
+Global (recommended):
+
+```bash
+npm install -g codex-sift
+codex-sift setup
+```
+
+Or without a global install:
+
+```bash
+npx codex-sift setup
+npx codex-sift
+```
+
+From this repo (development):
+
 ```bash
 cd codex-sift
 npm install

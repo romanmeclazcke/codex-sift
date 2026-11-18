@@ -2,11 +2,11 @@
 
 import { Fragment, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { CODEX_URL, JEV_DOCS_URL, POLICY_URL, README_URL, TABS } from "@/lib/content";
+import { CODEX_URL, JEV_DOCS_URL, NPM_URL, POLICY_URL, README_URL, TABS } from "@/lib/content";
 
 type Tok = { t: string; c?: string };
 
-const CMD = new Set(["git", "cd", "npm", "codex-sift", "codex"]);
+const CMD = new Set(["git", "cd", "npm", "npx", "codex-sift", "codex"]);
 
 function highlight(line: string): Tok[] {
   if (/^\s*#/.test(line)) return [{ t: line, c: "text-slate-400 italic" }];
@@ -66,10 +66,11 @@ export function QuickStart() {
           <p className="eyebrow">Quick start</p>
           <h2 className="mt-3 text-4xl font-semibold tracking-[-0.035em] sm:text-5xl">Install, set up, then run Codex through Sift</h2>
           <p className="mt-5 text-[17px] leading-relaxed text-muted">
-            Build the CLI, run <code className="font-mono text-ink">codex-sift setup</code> to assign models to flash, craft and forge, then start a session. Arguments match <code className="font-mono text-ink">codex</code>.
+            Install with <code className="font-mono text-ink">npm install -g codex-sift</code>, run <code className="font-mono text-ink">codex-sift setup</code> to assign models to flash, craft and forge, then start a session. Arguments match <code className="font-mono text-ink">codex</code>.
           </p>
           <ul className="mt-6 space-y-2 text-[15px]">
             {[
+              ["npm package: codex-sift", NPM_URL],
               ["Node 20+ and the Codex CLI", CODEX_URL],
               ["A TypeSafe key for live Jev routing", JEV_DOCS_URL],
               ["Full README and configuration table", README_URL],

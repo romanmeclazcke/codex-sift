@@ -5,11 +5,12 @@ export const POLICY_URL = `${REPO_URL}/blob/main/policy.yaml`;
 export const REPORT_URL = `${REPO_URL}/blob/main/reports/e2e-routing.md`;
 export const CONTRIBUTING_URL = `${REPO_URL}/blob/main/CONTRIBUTING.md`;
 export const LICENSE_URL = `${REPO_URL}/blob/main/LICENSE`;
+export const NPM_URL = "https://www.npmjs.com/package/codex-sift";
 export const JEV_DOCS_URL = "https://docs.typesafe.ai";
 export const CODEX_URL = "https://developers.openai.com/codex";
 
 /** Public site origin. Override with NEXT_PUBLIC_SITE_URL when you deploy. */
-export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://romanmeclazcke.github.io/codex-sift";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://codex-sift.vercel.app";
 
 export const AUTHOR = {
   name: "Roman Meclazcke",
@@ -41,6 +42,10 @@ export const FAQ = [
   {
     q: "Who built Codex Sift?",
     a: "Codex Sift was built by Roman Meclazcke (github.com/romanmeclazcke, x.com/romanmeclazcke_, linkedin.com/in/roman-meclazcke) and is released under the MIT license.",
+  },
+  {
+    q: "How do I install Codex Sift?",
+    a: "Install from npm with npm install -g codex-sift, then run codex-sift setup. You can also use npx codex-sift without a global install. The package is at npmjs.com/package/codex-sift.",
   },
 ] as const;
 
@@ -188,16 +193,14 @@ export const TABS: Tab[] = [
   {
     id: "install",
     label: "Install",
-    note: "Build from source, link the CLI, then assign a model to flash, craft and forge.",
-    code: `# clone and build
-git clone ${REPO_URL}
-cd codex-sift
-npm install
-npm run build
-npm link
+    note: "Install from npm, then assign a model to flash, craft and forge.",
+    code: `# recommended
+npm install -g codex-sift
+codex-sift setup
 
-# onboarding: pick flash, craft and forge models by number
-codex-sift setup`,
+# or without a global install
+npx codex-sift setup
+npx codex-sift`,
   },
   {
     id: "run",

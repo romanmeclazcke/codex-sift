@@ -16,6 +16,9 @@ export function JsonLd() {
     license: "https://opensource.org/licenses/MIT",
     url: SITE_URL,
     codeRepository: REPO_URL,
+    downloadUrl: "https://www.npmjs.com/package/codex-sift",
+    installUrl: "https://www.npmjs.com/package/codex-sift",
+    softwareVersion: "0.1.0",
     description:
       "Model router for the OpenAI Codex CLI. Routes each user turn to flash, craft or forge using TypeSafe Jev signals and a YAML policy.",
     author: person,

@@ -4,7 +4,7 @@
   "description": "Sift each Codex turn onto the cheapest model that can handle it. Judged by TypeSafe Jev, executed by the native Codex CLI.",
   "type": "module",
   "bin": {
-    "codex-sift": "./dist/cli.js"
+    "codex-sift": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -15,8 +15,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepare": "tsc",
+    "build": "tsc && node -e \"require('fs').chmodSync('dist/cli.js',0o755)\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
     "dev": "tsx src/cli.ts",
     "test": "tsx --test src/*.test.ts",
     "e2e": "tsx src/cli.ts e2e",
@@ -34,6 +35,15 @@
     "cli"
   ],
   "license": "MIT",
+  "author": "Roman Meclazcke",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/romanmeclazcke/codex-sift.git"
+  },
+  "bugs": {
+    "url": "https://github.com/romanmeclazcke/codex-sift/issues"
+  },
+  "homepage": "https://codex-sift.vercel.app",
   "dependencies": {
     "yaml": "^2.8.1"
   },
