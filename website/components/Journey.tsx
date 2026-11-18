@@ -675,9 +675,13 @@ export function Journey() {
                 <GitHubMark /> GitHub
               </MagneticButton>
             </div>
-            <span className="mt-8 rounded-full border border-line bg-white px-4 py-1.5 font-mono text-[11px] text-muted sm:mt-10 lg:absolute lg:inset-x-0 lg:bottom-5 lg:mx-auto lg:mt-0 lg:w-fit lg:border-0">
-              Scroll to follow one request ↓
-            </span>
+            <button
+              type="button"
+              onClick={routeRandomExample}
+              className="pointer-events-auto mt-4 inline-flex min-h-11 items-center rounded-full border border-accent bg-white px-4 font-mono text-xs font-medium text-accent-ink hover:bg-tint"
+            >
+              Try a random request ↓
+            </button>
           </div>
         </div>
 
