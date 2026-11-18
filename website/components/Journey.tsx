@@ -247,14 +247,15 @@ export function Journey() {
     const left = camXf * m.vw - g.cx * m.s;
     const top = anchor - camY * m.s;
     world.style.transform = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)`;
-    // On small screens keep the diagram off the first viewport so the hero stays clean.
-    const worldO = !ready ? 0 : m.vw < 1024 ? clamp((p - 0.035) / 0.07) : 1;
+    // Crossfade the mobile hero and diagram over the same scroll interval.
+    const heroFade = clamp(p / 0.045);
+    const worldO = !ready ? 0 : m.vw < 1024 ? heroFade : 1;
     world.style.opacity = worldO.toFixed(3);
 
     // hero + captions + chips
     const h = e.hero as HTMLElement | null;
     if (h) {
-      const o = 1 - clamp(p / 0.045);
+      const o = 1 - heroFade;
       h.style.opacity = o.toFixed(3);
       h.style.transform = `translate3d(0, ${(-clamp(p / 0.06) * 36).toFixed(1)}px, 0)`;
       h.style.visibility = o <= 0 ? "hidden" : "visible";
@@ -278,7 +279,7 @@ export function Journey() {
     }
     const prog = e.progress as HTMLElement | null;
     if (prog) prog.style.transform = `scaleY(${clamp((p - 0.06) / 0.89).toFixed(4)})`;
-  }, [geo, lane]);
+  }, [geo, lane, ready]);
 
   updateRef.current = update;
 
@@ -406,7 +407,7 @@ export function Journey() {
 
         <div
           ref={reg("world")}
-          className="world absolute left-0 top-0 will-change-transform transition-opacity duration-500"
+          className="world absolute left-0 top-0 will-change-transform lg:transition-opacity lg:duration-500"
           style={{ opacity: 0 }}
         >
           <svg
