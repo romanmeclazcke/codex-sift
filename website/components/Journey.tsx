@@ -156,7 +156,9 @@ export function Journey() {
     const fadeIn = clamp(dist / 50);
     const intoCard = 1 - clamp((p - 0.67) / 0.03);
     const outOfCard = clamp((p - P_RESP0) / 0.02);
-    const throughRouter = !responding && clamp((dist - st.dRouterTop) / 18) * (1 - clamp((dist - (st.dRouterBot - 18)) / 18));
+    const throughRouter = responding
+      ? 0
+      : clamp((dist - st.dRouterTop) / 18) * (1 - clamp((dist - (st.dRouterBot - 18)) / 18));
     const po = responding ? outOfCard : fadeIn * intoCard * (1 - throughRouter);
     setAttr("particle", "transform", `translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`);
     setAttr("particle", "opacity", po.toFixed(3));
