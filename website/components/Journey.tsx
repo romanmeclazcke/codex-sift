@@ -247,6 +247,9 @@ export function Journey() {
     const left = camXf * m.vw - g.cx * m.s;
     const top = anchor - camY * m.s;
     world.style.transform = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)`;
+    // On small screens keep the diagram off the first viewport so the hero stays clean.
+    const worldO = !ready ? 0 : m.vw < 1024 ? clamp((p - 0.035) / 0.07) : 1;
+    world.style.opacity = worldO.toFixed(3);
 
     // hero + captions + chips
     const h = e.hero as HTMLElement | null;
@@ -286,15 +289,25 @@ export function Journey() {
     const vw = stage.clientWidth;
     const vh = stage.clientHeight;
     const nm: Mode = vw >= 1024 ? 880 : vw >= 640 ? 700 : 600;
-    const s = nm === 880 ? Math.min(1.2, (vw * 0.62) / 880) : Math.min(1.25, (vw * 0.96) / nm);
+    const s =
+      nm === 880
+        ? Math.min(1.2, (vw * 0.62) / 880)
+        : nm === 700
+          ? Math.min(1.15, (vw * 0.92) / nm)
+          : Math.min(1.05, (vw * 0.9) / nm);
     const heroInner = els.current.heroInner as HTMLElement | null;
     const heroBottom = heroInner ? heroInner.offsetTop + heroInner.offsetHeight : vh * 0.5;
+    // Phone/tablet: park the diagram in the upper band above the bottom sheet until scroll takes over.
+    const y0 =
+      nm === 880
+        ? clamp(heroBottom + 96, vh * 0.6, vh - 120)
+        : clamp(vh * 0.42, 180, Math.max(200, vh - 320));
     mt.current = {
       vw,
       vh,
       s,
-      y0: clamp(heroBottom + 96, vh * 0.6, vh - 120),
-      anchor: nm === 880 ? 0.42 : nm === 700 ? 0.3 : 0.27,
+      y0,
+      anchor: nm === 880 ? 0.42 : nm === 700 ? 0.34 : 0.32,
       camX: nm === 880 ? 0.63 : 0.5,
     };
     world.style.width = `${nm * s}px`;
@@ -393,7 +406,8 @@ export function Journey() {
 
         <div
           ref={reg("world")}
-          className={`world absolute left-0 top-0 will-change-transform transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}
+          className="world absolute left-0 top-0 will-change-transform transition-opacity duration-500"
+          style={{ opacity: 0 }}
         >
           <svg
             viewBox={`0 0 ${geo.W} ${geo.H}`}
@@ -607,40 +621,45 @@ export function Journey() {
         </div>
 
         {/* hero */}
-        <div ref={reg("hero")} className="pointer-events-none absolute inset-0 will-change-transform">
-          <div ref={reg("heroInner")} className="flex flex-col items-center px-5 pt-24 text-center sm:pt-28">
+        <div ref={reg("hero")} className="pointer-events-none absolute inset-0 z-10 flex will-change-transform">
+          <div
+            ref={reg("heroInner")}
+            className="mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-5 pb-28 pt-20 text-center sm:px-8 sm:pt-24 lg:max-w-4xl lg:pb-16 lg:pt-28"
+          >
             <a
               href={REPO_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-line bg-white/80 px-3 py-1.5 font-mono text-xs text-muted transition-colors hover:border-accent hover:text-ink"
+              className="pointer-events-auto inline-flex max-w-full items-center gap-2 truncate rounded-full border border-line bg-white/90 px-3 py-1.5 font-mono text-[11px] text-muted transition-colors hover:border-accent hover:text-ink sm:text-xs"
             >
-              <GitHubMark className="h-3.5 w-3.5" /> {REPO_SLUG} · MIT
+              <GitHubMark className="h-3.5 w-3.5 shrink-0" /> {REPO_SLUG} · MIT
             </a>
-            <p className="mt-6 font-mono text-sm tracking-[0.18em] text-accent-ink">CODEX SIFT</p>
-            <h1 className="mt-3 max-w-4xl text-[clamp(2.25rem,min(8vw,12vh),4.75rem)] font-semibold leading-[1.02] tracking-[-0.045em]">
+            <p className="mt-5 font-mono text-[11px] tracking-[0.18em] text-accent-ink sm:mt-6 sm:text-sm">CODEX SIFT</p>
+            <h1 className="mt-3 max-w-[18ch] text-[clamp(1.85rem,8.2vw,4.75rem)] font-semibold leading-[1.08] tracking-[-0.045em] sm:max-w-4xl sm:leading-[1.02]">
               Model router for the Codex CLI
             </h1>
-            <p className="mt-5 max-w-xl text-[clamp(1rem,1.8vw,1.25rem)] leading-relaxed text-muted">
+            <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-muted sm:mt-5 sm:text-[clamp(1rem,1.8vw,1.25rem)]">
               Each user turn goes to flash, craft or forge before Codex bills it. On twelve live prompts that cut estimated quota{" "}
               <span className="text-ink">53.7%</span> versus always-forge.
             </p>
-            <div className="pointer-events-auto mt-6 flex flex-wrap items-center justify-center gap-3">
-              <MagneticButton href="#quick-start">Install Codex Sift</MagneticButton>
-              <MagneticButton href={REPO_URL} variant="secondary" external>
+            <div className="pointer-events-auto mt-6 flex w-full max-w-sm flex-col items-stretch gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
+              <MagneticButton href="#quick-start" className="w-full sm:w-auto">
+                Install Codex Sift
+              </MagneticButton>
+              <MagneticButton href={REPO_URL} variant="secondary" external className="w-full sm:w-auto">
                 <GitHubMark /> GitHub
               </MagneticButton>
             </div>
-          </div>
-          <div className="absolute inset-x-0 bottom-5 flex justify-center">
-            <span className="rounded-full bg-white px-4 py-1.5 font-mono text-xs text-muted">Scroll to follow one request ↓</span>
+            <span className="mt-8 rounded-full border border-line bg-white px-4 py-1.5 font-mono text-[11px] text-muted sm:mt-10 lg:absolute lg:inset-x-0 lg:bottom-5 lg:mx-auto lg:mt-0 lg:w-fit lg:border-0">
+              Scroll to follow one request ↓
+            </span>
           </div>
         </div>
 
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[290px] border-t border-line bg-white lg:hidden" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[min(42svh,290px)] border-t border-line bg-white lg:hidden" />
 
         {/* chapter captions */}
-        <div className="pointer-events-none absolute inset-x-4 bottom-[116px] sm:inset-x-8 lg:inset-x-auto lg:bottom-auto lg:left-10 lg:top-[56%] lg:w-[340px] xl:left-16">
+        <div className="pointer-events-none absolute inset-x-4 bottom-[116px] z-[2] sm:inset-x-8 lg:inset-x-auto lg:bottom-auto lg:left-10 lg:top-[56%] lg:z-auto lg:w-[340px] xl:left-16">
           <div className="relative h-0">
             {CHAPTERS.map((c, i) => (
               <div
@@ -660,7 +679,7 @@ export function Journey() {
         {/* request chooser */}
         <div
           ref={reg("chips")}
-          className="absolute inset-x-4 bottom-4 sm:inset-x-8 lg:inset-x-auto lg:bottom-10 lg:left-10 lg:w-[340px] xl:left-16"
+          className="absolute inset-x-4 bottom-4 z-[2] sm:inset-x-8 lg:inset-x-auto lg:bottom-10 lg:left-10 lg:z-auto lg:w-[340px] xl:left-16"
           style={{ opacity: 0, visibility: "hidden" }}
         >
           <p className="font-mono text-[11px] uppercase tracking-wider text-muted">Route another request</p>
