@@ -60,7 +60,7 @@ export type LaneInfo = {
   rules: string[];
   usage: number;
   saved: number;
-  examples: readonly string[];
+  examples: readonly { prompt: string; reason: string; response: string }[];
 };
 
 /** Lane defaults, rules and example prompts come from policy.yaml, README.md and reports/e2e-routing.md. */
@@ -75,9 +75,21 @@ export const LANES: Record<LaneId, LaneInfo> = {
     usage: 0.17,
     saved: 87.0,
     examples: [
-      "Rename getUser to fetchUser in src/api.ts",
-      "Fix the typo in the empty-state heading",
-      "Find the command that runs the unit tests",
+      {
+        prompt: "Rename getUser to fetchUser in src/api.ts",
+        reason: "Small edit in one file",
+        response: "Renamed getUser to fetchUser in src/api.ts.",
+      },
+      {
+        prompt: "Fix the typo in the empty-state heading",
+        reason: "Localized copy fix",
+        response: "Corrected the typo in the empty-state heading.",
+      },
+      {
+        prompt: "Find the command that runs the unit tests",
+        reason: "Simple command lookup",
+        response: "Run npm test to start the unit tests.",
+      },
     ],
   },
   craft: {
@@ -90,9 +102,21 @@ export const LANES: Record<LaneId, LaneInfo> = {
     usage: 0.55,
     saved: 59.3,
     examples: [
-      "Extract the fetch in page.tsx into a reusable hook",
-      "Fix the search results that go stale when filters change quickly",
-      "Add pagination to the activity feed and preserve the selected filters",
+      {
+        prompt: "Extract the fetch in page.tsx into a reusable hook",
+        reason: "Bounded refactor with shared state",
+        response: "Extracted the fetch logic into a reusable hook.",
+      },
+      {
+        prompt: "Fix the search results that go stale when filters change quickly",
+        reason: "Needs diagnosis of overlapping requests",
+        response: "Discarded stale responses when filters change.",
+      },
+      {
+        prompt: "Add pagination to the activity feed and preserve the selected filters",
+        reason: "Feature spans pagination and filter state",
+        response: "Added pagination and kept filters in the URL.",
+      },
     ],
   },
   forge: {
@@ -110,9 +134,21 @@ export const LANES: Record<LaneId, LaneInfo> = {
     usage: 1.35,
     saved: 0,
     examples: [
-      "Find why the auth test fails only when the full suite runs",
-      "Plan a zero-downtime migration for a shared production database",
-      "Diagnose duplicate payments across retries, webhooks, and workers",
+      {
+        prompt: "Find why the auth test fails only when the full suite runs",
+        reason: "Auth failure depends on suite state",
+        response: "Found a shared auth mock leaking between tests.",
+      },
+      {
+        prompt: "Plan a zero-downtime migration for a shared production database",
+        reason: "Production migration needs a rollout plan",
+        response: "Outlined a staged migration with a rollback point.",
+      },
+      {
+        prompt: "Diagnose duplicate payments across retries, webhooks, and workers",
+        reason: "Retries can cause duplicate charges",
+        response: "Found two retry paths that can process the same payment.",
+      },
     ],
   },
 };

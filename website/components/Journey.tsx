@@ -209,6 +209,8 @@ export function Journey() {
     const u1 = clamp((dist - st.dRouterBot + 60) / (st.dBranch - st.dRouterBot + 110));
     const u2 = clamp((dist - st.dBranch) / (st.dLane - st.dBranch + 40));
     const decided = dist >= st.dBranch - 5;
+    setAttr("route-reason", "opacity", clamp((dist - (st.dBranch - 30)) / 25));
+    setAttr("reply-preview", "opacity", clamp((rp - 0.65) / 0.3));
     for (const id of LANE_ORDER) {
       setAttr(`b-${id}`, "stroke-dashoffset", (1 - u1).toFixed(4));
       setAttr(`c-${id}`, "stroke-dashoffset", (1 - u2).toFixed(4));
@@ -410,8 +412,8 @@ export function Journey() {
 
   const fs = geo.fs;
   const promptLines = useMemo(
-    () => wrap(`“${example}”`, Math.floor((geo.W - (geo.cx + 18) - 12) / (fs.xs * 0.6))),
-    [example, geo.W, geo.cx, fs.xs],
+    () => wrap(`“${example.prompt}”`, Math.floor((geo.W - (geo.cx + 18) - 12) / (fs.xs * 0.6))),
+    [example.prompt, geo.W, geo.cx, fs.xs],
   );
   const R = geo.router;
   const cellFs = fs.xs - 2;
@@ -480,7 +482,7 @@ export function Journey() {
             {/* lit trails */}
             <path ref={reg("req")} mask={`url(#${laneTrackMask})`} d={requestD(geo, lane)} fill="none" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeDasharray="3000" strokeDashoffset="3000" />
             <path ref={reg("resp")} d={returnD(geo, lane)} fill="none" stroke="#0EA5E9" strokeWidth="3" strokeLinecap="round" strokeDasharray="600" strokeDashoffset="600" />
-            <path ref={reg("tail")} d={`M ${geo.cx} ${geo.tui.y + 66} L ${geo.cx} ${geo.H}`} fill="none" stroke="#38BDF8" strokeWidth="3" opacity="0" />
+            <path ref={reg("tail")} d={`M ${geo.cx} ${geo.tui.y + 96} L ${geo.cx} ${geo.H}`} fill="none" stroke="#38BDF8" strokeWidth="3" opacity="0" />
 
             {/* origin node */}
             <g ref={reg("pill")}>
@@ -556,10 +558,13 @@ export function Journey() {
               <line x1={R.x + 22} x2={R.x + R.w - 22} y1={R.y + 198} y2={R.y + 198} stroke="#E2E8F0" />
               <rect x={R.x + 22} y={R.y + 212} width={R.w - 44} height="3" rx="1.5" fill="#E0F2FE" />
               <rect ref={reg("rbar")} x={R.x + 22} y={R.y + 212} width="0" height="3" rx="1.5" fill="#38BDF8" />
-              <text ref={reg("rstatus")} x={R.x + 22} y={R.y + 245} fontSize={fs.xs} fill="#0F172A">
+              <text ref={reg("rstatus")} x={R.x + 22} y={R.y + 238} fontSize={fs.xs} fill="#0F172A">
                 awaiting request
               </text>
-              <text x={R.x + R.w - 22} y={R.y + 245} fontSize={fs.xs} fill="#64748B" textAnchor="end">
+              <text ref={reg("route-reason")} x={R.x + 22} y={R.y + 258} fontSize={fs.xs - 1} fill="#0369A1" opacity="0">
+                {example.reason}
+              </text>
+              <text x={R.x + R.w - 22} y={R.y + 238} fontSize={fs.xs} fill="#64748B" textAnchor="end">
                 ≈300 ms
               </text>
             </g>
@@ -631,8 +636,12 @@ export function Journey() {
                   Codex TUI · response
                 </text>
               </g>
-              <text x={geo.cx} y={geo.tui.y + 52} textAnchor="middle" fontSize={fs.xs} fill="#64748B">
-                sessions, tools, sandbox stay native
+              <text ref={reg("reply-preview")} textAnchor="middle" fontSize={fs.xs} fill="#334155" opacity="0">
+                {wrap(example.response, 42).map((line, i) => (
+                  <tspan key={line} x={geo.cx} y={geo.tui.y + 46 + i * (fs.xs + 6)}>
+                    {line}
+                  </tspan>
+                ))}
               </text>
             </g>
 
