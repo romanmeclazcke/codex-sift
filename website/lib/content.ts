@@ -203,25 +203,21 @@ export const E2E_SUMMARY = {
 
 export const STEPS = [
   {
-    n: "01",
     title: "Intercepts the Responses call",
     tag: "model_provider",
     body: "Codex has no hook that changes the model before a turn is billed. Sift starts a loopback Responses proxy and launches Codex with process-local -c overrides. TUI, sessions and sandbox stay native.",
   },
   {
-    n: "02",
     title: "Asks Jev six atomic questions",
     tag: "TypeSafe Jev",
     body: "On every user turn Sift asks Jev for task_kind, difficulty, needs_reasoning, needs_planning, high_stakes and cross_cutting. Typed signals come back in about 300 ms. Jev never writes code or picks a model.",
   },
   {
-    n: "03",
     title: "Maps signals with policy.yaml",
     tag: "first match wins",
     body: "YAML rules turn those signals into flash, craft or forge. If Jev times out or the key is missing, Sift fails open to on_jev_down (default craft) and marks the decision degraded.",
   },
   {
-    n: "04",
     title: "Rewrites model and effort only",
     tag: "model + reasoning.effort",
     body: "Only model and reasoning.effort change. Your ChatGPT or API-key login is forwarded upstream. Tool-loop continuations stay pinned to the chosen lane.",

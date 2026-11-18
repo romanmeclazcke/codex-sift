@@ -29,11 +29,8 @@ export function HowItWorks() {
 
         <div className="mt-8 grid gap-5 sm:grid-cols-2">
           {STEPS.map((s) => (
-            <TiltCard key={s.n} className="p-7">
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-sm text-accent-ink">{s.n}</span>
-                <span className="rounded-full bg-tint px-2.5 py-1 font-mono text-[11px] text-accent-ink">{s.tag}</span>
-              </div>
+            <TiltCard key={s.title} className="p-7">
+              <span className="inline-block rounded-full bg-tint px-2.5 py-1 font-mono text-[11px] text-accent-ink">{s.tag}</span>
               <h3 className="mt-5 text-xl font-semibold tracking-tight">{s.title}</h3>
               <p className="mt-3 text-[15px] leading-relaxed text-muted">{s.body}</p>
             </TiltCard>
