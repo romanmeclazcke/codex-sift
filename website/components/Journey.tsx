@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useMotionValueEvent, useScroll } from "motion/react";
 import { LANES, LANE_ORDER, SIGNALS, REPO_SLUG, REPO_URL, type LaneId } from "@/lib/content";
 import {
@@ -90,6 +90,7 @@ type Metrics = { vw: number; vh: number; s: number; y0: number; anchor: number; 
 
 export function Journey() {
   const reduced = useReducedMotion();
+  const laneTrackMask = useId();
   const [sample, setSample] = useState({ lane: "flash" as LaneId, index: 0 });
   const { lane, index } = sample;
   const example = LANES[lane].examples[index];
@@ -279,12 +280,6 @@ export function Journey() {
       n.style.transform = `translate3d(0, ${((1 - a) * 18 - (1 - b) * 18).toFixed(1)}px, 0)`;
       n.style.visibility = o <= 0.001 ? "hidden" : "visible";
     });
-    const chips = e.chips as HTMLElement | null;
-    if (chips) {
-      const o = clamp((p - 0.045) / 0.015);
-      chips.style.opacity = o.toFixed(3);
-      chips.style.visibility = o <= 0 ? "hidden" : "visible";
-    }
     const prog = e.progress as HTMLElement | null;
     if (prog) prog.style.transform = `scaleY(${clamp((p - 0.06) / 0.89).toFixed(4)})`;
   }, [geo, lane, ready]);
@@ -443,6 +438,15 @@ export function Journey() {
             aria-label="Diagram: a request enters Codex Sift, the router inspects it, and the policy sends it down the flash, craft or forge lane to a model. The response returns to the Codex TUI."
             className="block overflow-visible"
           >
+            <defs>
+              <mask id={laneTrackMask} maskUnits="userSpaceOnUse" x="0" y="0" width={geo.W} height={geo.H}>
+                <rect width={geo.W} height={geo.H} fill="white" />
+                {LANE_ORDER.map((id) => (
+                  <rect key={id} x={geo.laneX[id] - 54} y={geo.laneY - 20} width="108" height="70" fill="black" />
+                ))}
+              </mask>
+            </defs>
+
             {/* ambient requests arriving from elsewhere */}
             {!reduced && (
               <g ref={reg("ambient")} aria-hidden>
@@ -465,7 +469,7 @@ export function Journey() {
             {/* base tracks */}
             <path d={`M ${geo.cx} ${SPINE_START} L ${geo.cx} ${geo.branchY}`} stroke="#E2E8F0" strokeWidth="2" fill="none" />
             {LANE_ORDER.map((id) => (
-              <g key={id} className="branch" onPointerEnter={() => tip.current?.show(laneTip(id))} onPointerLeave={() => tip.current?.hide()} onClick={() => setLane(id)}>
+              <g key={id} className="branch" mask={`url(#${laneTrackMask})`} onPointerEnter={() => tip.current?.show(laneTip(id))} onPointerLeave={() => tip.current?.hide()} onClick={() => setLane(id)}>
                 <path className="base" d={branchD(geo, id)} fill="none" strokeWidth="2" pathLength={1} strokeDasharray="1" strokeDashoffset="1" ref={reg(`b-${id}`)} />
                 <path className="hit" d={branchD(geo, id)} strokeWidth="34" />
                 <path className="base" d={connectorD(geo, id)} fill="none" strokeWidth="2" pathLength={1} strokeDasharray="1" strokeDashoffset="1" ref={reg(`c-${id}`)} />
@@ -474,7 +478,7 @@ export function Journey() {
             ))}
 
             {/* lit trails */}
-            <path ref={reg("req")} d={requestD(geo, lane)} fill="none" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeDasharray="3000" strokeDashoffset="3000" />
+            <path ref={reg("req")} mask={`url(#${laneTrackMask})`} d={requestD(geo, lane)} fill="none" stroke="#38BDF8" strokeWidth="3" strokeLinecap="round" strokeDasharray="3000" strokeDashoffset="3000" />
             <path ref={reg("resp")} d={returnD(geo, lane)} fill="none" stroke="#0EA5E9" strokeWidth="3" strokeLinecap="round" strokeDasharray="600" strokeDashoffset="600" />
             <path ref={reg("tail")} d={`M ${geo.cx} ${geo.tui.y + 66} L ${geo.cx} ${geo.H}`} fill="none" stroke="#38BDF8" strokeWidth="3" opacity="0" />
 
@@ -704,35 +708,6 @@ export function Journey() {
               </div>
             ))}
           </div>
-        </div>
-
-        {/* request chooser */}
-        <div
-          ref={reg("chips")}
-          className="absolute inset-x-4 bottom-4 z-[2] sm:inset-x-8 lg:inset-x-auto lg:bottom-10 lg:left-10 lg:z-auto lg:w-[340px] xl:left-16"
-          style={{ opacity: 0, visibility: "hidden" }}
-        >
-          <div className="flex items-center justify-between gap-2 font-mono text-[11px]">
-            <span className="uppercase tracking-wider text-muted">Routing demo</span>
-            <button type="button" onClick={routeRandomExample} className="rounded px-2 text-accent-ink hover:underline">
-              Random request ↻
-            </button>
-          </div>
-          <div role="group" aria-label="Choose an example request" className="mt-2 grid grid-cols-3 gap-2">
-            {LANE_ORDER.map((id) => (
-              <button
-                key={id}
-                type="button"
-                aria-pressed={lane === id}
-                onClick={() => setLane(id)}
-                className={`min-h-11 rounded-xl border px-3 text-left transition-colors ${lane === id ? "border-accent bg-tint" : "border-line bg-white hover:border-accent/60 hover:bg-wash"}`}
-              >
-                <span className="block font-mono text-xs font-medium">{id}</span>
-                <span className="block truncate text-[11px] text-muted">{LANES[id].model}</span>
-              </button>
-            ))}
-          </div>
-          <p aria-live="polite" className="mt-2 line-clamp-2 font-mono text-[11px] leading-snug text-muted">“{example}”</p>
         </div>
 
         <Tooltip ref={tip} />
