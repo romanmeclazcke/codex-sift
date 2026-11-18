@@ -88,7 +88,9 @@ type Metrics = { vw: number; vh: number; s: number; y0: number; anchor: number; 
 
 export function Journey() {
   const reduced = useReducedMotion();
-  const [lane, setLane] = useState<LaneId>("flash");
+  const [sample, setSample] = useState({ lane: "flash" as LaneId, index: 0 });
+  const { lane, index } = sample;
+  const example = LANES[lane].examples[index];
   const [mode, setMode] = useState<Mode>(880);
   const [ready, setReady] = useState(false);
 
@@ -159,7 +161,10 @@ export function Journey() {
     const throughRouter = responding
       ? 0
       : clamp((dist - st.dRouterTop) / 18) * (1 - clamp((dist - (st.dRouterBot - 18)) / 18));
-    const po = responding ? outOfCard : fadeIn * intoCard * (1 - throughRouter);
+    // Fade the particle around the lane badge and its subtitle.
+    const aboveLane = 1 - clamp((pt.y - (g.laneY - 55)) / 20);
+    const belowLane = clamp((pt.y - (g.laneY + 62)) / 18);
+    const po = responding ? outOfCard : fadeIn * intoCard * (1 - throughRouter) * Math.max(aboveLane, belowLane);
     setAttr("particle", "transform", `translate(${pt.x.toFixed(2)} ${pt.y.toFixed(2)})`);
     setAttr("particle", "opacity", po.toFixed(3));
     const phase = responding ? "resp" : "req";
@@ -387,11 +392,27 @@ export function Journey() {
     ],
   };
 
+  const setLane = (next: LaneId) => setSample((current) => current.lane === next ? current : { lane: next, index: 0 });
+
+  const routeRandomExample = () => {
+    const otherLanes = LANE_ORDER.filter((id) => id !== lane);
+    const next = otherLanes[Math.floor(Math.random() * otherLanes.length)];
+    const examples = LANES[next].examples;
+    setSample({ lane: next, index: Math.floor(Math.random() * examples.length) });
+
+    const journey = container.current;
+    const stage = els.current.stage;
+    if (journey && stage) {
+      const start = window.scrollY + journey.getBoundingClientRect().top;
+      const distance = journey.offsetHeight - stage.clientHeight;
+      window.scrollTo({ top: start + distance * 0.1, behavior: reduced ? "instant" : "smooth" });
+    }
+  };
+
   const fs = geo.fs;
-  const L0 = LANES[lane];
   const promptLines = useMemo(
-    () => wrap(`“${L0.example}”`, Math.floor((geo.W - (geo.cx + 18) - 12) / (fs.xs * 0.6))),
-    [L0.example, geo.W, geo.cx, fs.xs],
+    () => wrap(`“${example}”`, Math.floor((geo.W - (geo.cx + 18) - 12) / (fs.xs * 0.6))),
+    [example, geo.W, geo.cx, fs.xs],
   );
   const R = geo.router;
   const cellFs = fs.xs - 2;
@@ -683,7 +704,12 @@ export function Journey() {
           className="absolute inset-x-4 bottom-4 z-[2] sm:inset-x-8 lg:inset-x-auto lg:bottom-10 lg:left-10 lg:z-auto lg:w-[340px] xl:left-16"
           style={{ opacity: 0, visibility: "hidden" }}
         >
-          <p className="font-mono text-[11px] uppercase tracking-wider text-muted">Route another request</p>
+          <div className="flex items-center justify-between gap-2 font-mono text-[11px]">
+            <span className="uppercase tracking-wider text-muted">Routing demo</span>
+            <button type="button" onClick={routeRandomExample} className="rounded px-2 text-accent-ink hover:underline">
+              Random request ↻
+            </button>
+          </div>
           <div role="group" aria-label="Choose an example request" className="mt-2 grid grid-cols-3 gap-2">
             {LANE_ORDER.map((id) => (
               <button
@@ -698,7 +724,7 @@ export function Journey() {
               </button>
             ))}
           </div>
-          <p className="mt-2 line-clamp-2 font-mono text-[11px] leading-snug text-muted">“{L0.example}”</p>
+          <p aria-live="polite" className="mt-2 line-clamp-2 font-mono text-[11px] leading-snug text-muted">“{example}”</p>
         </div>
 
         <Tooltip ref={tip} />

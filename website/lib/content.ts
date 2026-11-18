@@ -60,7 +60,7 @@ export type LaneInfo = {
   rules: string[];
   usage: number;
   saved: number;
-  example: string;
+  examples: readonly string[];
 };
 
 /** Lane defaults, rules and example prompts come from policy.yaml, README.md and reports/e2e-routing.md. */
@@ -74,7 +74,11 @@ export const LANES: Record<LaneId, LaneInfo> = {
     rules: ["greeting or chitchat", "lookup or plumbing", "localized cheap edit"],
     usage: 0.17,
     saved: 87.0,
-    example: "rename getUser to fetchUser in src/api.ts",
+    examples: [
+      "Rename getUser to fetchUser in src/api.ts",
+      "Fix the typo in the empty-state heading",
+      "Find the command that runs the unit tests",
+    ],
   },
   craft: {
     id: "craft",
@@ -85,7 +89,11 @@ export const LANES: Record<LaneId, LaneInfo> = {
     rules: ["needs real diagnosis", "everyday implementation", "default balanced lane"],
     usage: 0.55,
     saved: 59.3,
-    example: "extract the fetch in page.tsx into a reusable hook",
+    examples: [
+      "Extract the fetch in page.tsx into a reusable hook",
+      "Fix the search results that go stale when filters change quickly",
+      "Add pagination to the activity feed and preserve the selected filters",
+    ],
   },
   forge: {
     id: "forge",
@@ -101,7 +109,11 @@ export const LANES: Record<LaneId, LaneInfo> = {
     ],
     usage: 1.35,
     saved: 0,
-    example: "the auth test fails only when run with the full suite, find the leak",
+    examples: [
+      "Find why the auth test fails only when the full suite runs",
+      "Plan a zero-downtime migration for a shared production database",
+      "Diagnose duplicate payments across retries, webhooks, and workers",
+    ],
   },
 };
 
