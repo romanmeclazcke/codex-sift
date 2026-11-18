@@ -80,6 +80,7 @@ const CHAPTERS = [
   },
 ] as const;
 
+const HERO_LEAD_IN = 0.015;
 const P_PROCESS = 0.7;
 const P_RESP0 = 0.8;
 const P_RESP1 = 0.95;
@@ -130,7 +131,7 @@ export function Journey() {
     const world = e.world as HTMLElement | null;
     if (!m.vw || !req || !resp || !world) return;
 
-    const p = pRef.current;
+    const p = clamp((pRef.current - HERO_LEAD_IN) / (1 - HERO_LEAD_IN));
     const g = geo;
     const st = stations(g, lane);
     const L = lens.current;
@@ -250,7 +251,8 @@ export function Journey() {
     let camXf = lerp(0.5, m.camX, ease(clamp((p - 0.07) / 0.13)));
     camXf = lerp(camXf, 0.5, ease(clamp((p - 0.93) / 0.07)));
     const left = camXf * m.vw - g.cx * m.s;
-    const top = anchor - camY * m.s;
+    const introGap = (m.vw < 1024 ? 56 : 40) * (1 - ease(clamp(p / 0.14)));
+    const top = anchor + introGap - camY * m.s;
     world.style.transform = `translate3d(${left.toFixed(1)}px, ${top.toFixed(1)}px, 0)`;
     // Crossfade the mobile hero and diagram over the same scroll interval.
     const heroFade = clamp(p / 0.045);
@@ -405,7 +407,8 @@ export function Journey() {
     if (journey && stage) {
       const start = window.scrollY + journey.getBoundingClientRect().top;
       const distance = journey.offsetHeight - stage.clientHeight;
-      window.scrollTo({ top: start + distance * 0.1, behavior: reduced ? "instant" : "smooth" });
+      const requestStart = HERO_LEAD_IN + (1 - HERO_LEAD_IN) * 0.1;
+      window.scrollTo({ top: start + distance * requestStart, behavior: reduced ? "instant" : "smooth" });
     }
   };
 
