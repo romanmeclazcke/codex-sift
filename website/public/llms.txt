@@ -1,0 +1,40 @@
+# Codex Sift
+
+> Model router for the OpenAI Codex CLI. Routes each user turn to the cheapest model lane that should handle it.
+
+Codex Sift was built by Roman Meclazcke. It is MIT licensed.
+
+Sift sits in front of Codex as a local `model_provider`. On every user turn it asks TypeSafe Jev for typed signals (task_kind, difficulty, needs_reasoning, needs_planning, high_stakes, cross_cutting). Your `policy.yaml` maps those signals to flash, craft or forge. Only `model` and `reasoning.effort` are rewritten; the Codex TUI, sessions, tools and sandbox stay native.
+
+## Hard facts
+
+- Twelve live Jev prompts in `reports/e2e-routing.md`
+- Estimated quota 7.5 vs always-forge baseline 16.2 (53.7% saved)
+- Policy expectation match 11/12
+- Average Jev latency 418 ms in that run
+- Fail-open lane when Jev is down: craft (configurable)
+
+## Who it is for
+
+Developers who use the OpenAI Codex CLI and do not want every turn billed on the strongest model.
+
+## Who it is not for
+
+It is Codex-only. It is not an MCP server and does not patch `~/.codex/config.toml`.
+
+## Links
+
+- Site: /
+- Source: https://github.com/romanmeclazcke/codex-sift
+- README: https://github.com/romanmeclazcke/codex-sift#readme
+- E2E report: https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md
+- Author: https://github.com/romanmeclazcke
+- X: https://x.com/romanmeclazcke_
+- LinkedIn: https://www.linkedin.com/in/roman-meclazcke
+- TypeSafe Jev docs: https://docs.typesafe.ai
+- Codex docs: https://developers.openai.com/codex
+
+## Optional
+
+- Default policy: https://github.com/romanmeclazcke/codex-sift/blob/main/policy.yaml
+- Contributing: https://github.com/romanmeclazcke/codex-sift/blob/main/CONTRIBUTING.md

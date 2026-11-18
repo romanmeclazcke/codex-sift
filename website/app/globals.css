@@ -1,0 +1,224 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #38bdf8;
+  --color-accent-2: #0ea5e9;
+  --color-accent-ink: #0369a1;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-line: #e2e8f0;
+  --color-tint: #e0f2fe;
+  --color-wash: #f7fbff;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #fff;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-tint);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent-2);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-accent-ink);
+}
+
+.dotgrid {
+  background-image: radial-gradient(circle, #94a3b8 1px, transparent 1.2px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(circle 260px at var(--mx, 50%) var(--my, 40%), #000 0%, transparent 100%);
+  mask-image: radial-gradient(circle 260px at var(--mx, 50%) var(--my, 40%), #000 0%, transparent 100%);
+  opacity: 0.55;
+}
+
+/* ---- Routing diagram (SVG) ---- */
+.world text {
+  font-family: var(--font-mono);
+}
+.world .sans {
+  font-family: var(--font-sans);
+}
+
+.sig .dot {
+  fill: #e2e8f0;
+  transition: fill 0.35s;
+}
+.sig .txt {
+  fill: #94a3b8;
+  transition: fill 0.35s;
+}
+.sig[data-on="1"] .dot {
+  fill: #38bdf8;
+}
+.sig[data-on="1"] .txt {
+  fill: #0f172a;
+}
+
+.router .frame {
+  fill: #fff;
+  stroke: #bae6fd;
+  stroke-width: 1.5;
+  transition: stroke 0.3s, fill 0.3s;
+}
+.router:hover .frame,
+.router[data-state="scan"] .frame {
+  stroke: #38bdf8;
+}
+.rc .scan {
+  opacity: 0;
+}
+.rc[data-state="scan"] .scan {
+  opacity: 1;
+  animation: scan 1.6s ease-in-out infinite alternate;
+}
+@keyframes scan {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--scan-h, 150px));
+  }
+}
+
+.branch .hit {
+  stroke: transparent;
+  fill: none;
+  cursor: pointer;
+}
+.branch .base {
+  stroke: #e2e8f0;
+  transition: stroke 0.25s;
+}
+.branch:hover .base {
+  stroke: #7dd3fc;
+}
+
+.lane[data-sel="0"] {
+  opacity: 0.45;
+}
+.lane {
+  transition: opacity 0.4s;
+}
+.pill .pf {
+  fill: #fff;
+  stroke: #e2e8f0;
+  transition: fill 0.3s, stroke 0.3s;
+}
+.lane[data-sel="1"] .pill .pf,
+.pill[data-on="1"] .pf {
+  fill: #e0f2fe;
+  stroke: #38bdf8;
+}
+
+.card .frame {
+  fill: #fff;
+  stroke: #e2e8f0;
+  stroke-width: 1.5;
+  transition: fill 0.3s, stroke 0.3s;
+  cursor: pointer;
+}
+.card:hover .frame {
+  stroke: #7dd3fc;
+}
+.card[data-sel="1"] .frame {
+  stroke: #38bdf8;
+}
+.card[data-state="processing"] .frame,
+.card[data-state="responding"] .frame {
+  fill: #f7fbff;
+}
+.card .dots circle {
+  fill: #0ea5e9;
+  opacity: 0;
+}
+.card[data-state="processing"] .dots circle {
+  animation: blink 1s infinite;
+}
+.card[data-state="processing"] .dots circle:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.card[data-state="processing"] .dots circle:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.particle-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ring 1.8s ease-out infinite;
+}
+@keyframes ring {
+  from {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.pulse-dot {
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.caret {
+  animation: blink 1.1s steps(2) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .particle-ring,
+  .pulse-dot,
+  .caret,
+  .rc[data-state="scan"] .scan,
+  .card[data-state="processing"] .dots circle {
+    animation: none !important;
+  }
+  .card[data-state="processing"] .dots circle {
+    opacity: 1;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
