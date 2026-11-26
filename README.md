@@ -61,6 +61,8 @@ If you pin another model in `/model`, routing pauses. Pick **Sift** again to res
 | Add a loading state to the form | `craft` | Bounded implementation |
 | Plan a production migration | `forge` | High-stakes change |
 
+[Try the interactive demo](https://codex-sift.vercel.app/)
+
 ## Install
 
 Global (recommended):
