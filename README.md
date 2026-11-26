@@ -6,6 +6,11 @@ Save your strongest model for the turns that need it.
 
 [Install](#install) · [Demo](#routing-demo) · [Results](#how-much-usage-can-codex-sift-save) · [Commands](#commands) · [FAQ](https://codex-sift.vercel.app/#faq) · [Star history](#star-history)
 
+[![CI](https://github.com/romanmeclazcke/codex-sift/actions/workflows/test.yml/badge.svg)](https://github.com/romanmeclazcke/codex-sift/actions/workflows/test.yml)
+[![MIT license](https://img.shields.io/github/license/romanmeclazcke/codex-sift)](LICENSE)
+[![npm version](https://img.shields.io/npm/v/codex-sift)](https://www.npmjs.com/package/codex-sift)
+[![GitHub stars](https://img.shields.io/github/stars/romanmeclazcke/codex-sift)](https://github.com/romanmeclazcke/codex-sift/stargazers)
+
 Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/codex). It keeps the native Codex experience, but routes each user turn to the cheapest model lane that should be able to handle it.
 
 ## How much usage can Codex Sift save?
