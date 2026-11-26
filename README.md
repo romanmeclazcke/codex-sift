@@ -51,6 +51,14 @@ you → codex-sift → Codex TUI
 
 If you pin another model in `/model`, routing pauses. Pick **Sift** again to resume.
 
+## Routing demo
+
+| Example | Lane | Why |
+| --- | --- | --- |
+| Explain package.json | `flash` | Short lookup |
+| Add a loading state to the form | `craft` | Bounded implementation |
+| Plan a production migration | `forge` | High-stakes change |
+
 ## Install
 
 Global (recommended):
