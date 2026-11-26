@@ -4,6 +4,8 @@
 
 Save your strongest model for the turns that need it.
 
+[Install](#install) · [Demo](#routing-demo) · [Results](#how-much-usage-can-codex-sift-save) · [Commands](#commands) · [FAQ](https://codex-sift.vercel.app/#faq) · [Star history](#star-history)
+
 Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/codex). It keeps the native Codex experience, but routes each user turn to the cheapest model lane that should be able to handle it.
 
 ## How much usage can Codex Sift save?
