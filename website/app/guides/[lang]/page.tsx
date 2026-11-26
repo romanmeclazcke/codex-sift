@@ -50,6 +50,10 @@ export default async function Guide({ params }: GuideProps) {
             <p>{body}</p>
           </section>
         ))}
+        <section className="mt-8">
+          <h2 className="mb-2 text-2xl font-semibold">{spanish ? "Qué medimos con Codex Sift" : "What we measured with Codex Sift"}</h2>
+          <p>{guide.result}</p>
+        </section>
         <InstallActions page={`guide-${lang}`} spanish={spanish} />
         <div className="flex flex-col gap-3">
           <Link className="underline" href="/benchmark">{guide.benchmark}</Link>

@@ -2,6 +2,14 @@
 
 Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/codex). It keeps the native Codex experience, but routes each user turn to the cheapest model lane that should be able to handle it.
 
+## How much usage can Codex Sift save?
+
+**Codex Sift used 48.8% less estimated Codex quota** in a November 26, 2026 routing test on 12 representative requests, compared with sending every request to the `forge` lane (`gpt-5.6-sol`, high reasoning effort). The routing policy estimates quota from model and reasoning-effort weights. The estimate is specific to this workload and policy. [Full routing report and per-request results](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md)
+
+In a separate live Codex CLI test on three short coding questions, the models selected by Sift used **8.7% fewer input tokens** than always using `forge` (54,458 vs. 59,654). Both strategies answered **3/3** correctly. Sift took 17.7 seconds in total and the fixed model took 16.0 seconds. Each strategy ran once, and the input counts include cached tokens. [Benchmark methodology and comparison](https://codex-sift.vercel.app/benchmark) · [Raw CLI measurements](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/model-comparison.json)
+
+To reproduce the routing test with your TypeSafe API key, run `npm ci` and `npm run e2e:report` from the repository.
+
 The problem is simple: coding sessions mix tiny asks, everyday implementation, and genuinely hard work. Running every turn on the strongest model is easy, but it spends premium quota on prompts like “explain this file”, “run the tests”, or “rename this helper”. Sift adds a small decision layer before Codex spends the turn.
 
 On every **user turn**, Sift asks [TypeSafe Jev](https://docs.typesafe.ai) how hard the task is. Your YAML policy then picks a lane — **flash**, **craft**, or **forge** — and Codex runs against that model. You still talk to the native TUI.
@@ -13,31 +21,6 @@ This is a Codex-only router. It is not an MCP server, and it does not patch `~/.
 To get started, run `npx codex-sift setup` with Node.js 20+, the Codex CLI, and a TypeSafe API key. Then run `npx codex-sift` to launch Codex with routing enabled.
 
 [Reduce Codex CLI token usage](https://codex-sift.vercel.app/guides/en) · [Cómo reducir el consumo de Codex CLI](https://codex-sift.vercel.app/guides/es) · [Routing benchmark](https://codex-sift.vercel.app/benchmark) · [Manual model switching vs Codex Sift](https://codex-sift.vercel.app/compare)
-
-## Current E2E result
-
-The latest routing report in this repository was generated with:
-
-```bash
-npm run e2e:report
-```
-
-Result:
-
-| Metric | Value |
-|---|---:|
-| Representative cases | 12 |
-| Live Jev cases | 12 |
-| Degraded cases | 0 |
-| Policy expectation match | 12/12 |
-| Average Jev latency | 249 ms |
-| Always-forge baseline | 16.20 |
-| Sift routed usage | 8.30 |
-| Estimated quota saved | 48.8% |
-
-See [reports/e2e-routing.md](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md) for the full table.
-
-This measures routing and quota efficiency against an always-forge baseline. It does not claim answer quality unless you run and score the same prompts through Codex.
 
 ## Why this shape
 
