@@ -1,13 +1,14 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
+import { Analytics } from "@vercel/analytics/next";
 import { JsonLd } from "@/components/JsonLd";
 import { AUTHOR, SITE_URL } from "@/lib/content";
 import "./globals.css";
 
 const title = "Codex Sift — Model router for the Codex CLI";
 const description =
-  "Codex Sift routes each Codex CLI turn to flash, craft or forge before the turn is billed. TypeSafe Jev scores the request; your policy.yaml picks the lane. On twelve live prompts that cut estimated quota 53.7% versus always-forge. Built by Roman Meclazcke.";
+  "Codex Sift routes each Codex CLI turn to flash, craft or forge before the turn is billed. TypeSafe Jev scores the request; your policy.yaml picks the lane. On twelve live prompts that cut estimated quota 48.8% versus always-forge. Built by Roman Meclazcke.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,6 +68,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <JsonLd />
         {children}
+        <Analytics />
       </body>
     </html>
   );

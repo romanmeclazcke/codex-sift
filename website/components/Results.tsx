@@ -42,9 +42,9 @@ export function Results() {
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
           <p className="eyebrow">Results</p>
-          <h2 className="mt-3 text-5xl font-semibold tracking-[-0.04em] sm:text-6xl">53.7% less quota on twelve prompts</h2>
+          <h2 className="mt-3 text-5xl font-semibold tracking-[-0.04em] sm:text-6xl">48.8% less estimated quota on twelve prompts</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-            Live Jev classified twelve representative Codex prompts into flash, craft or forge. Estimated quota fell from 16.2 to 7.5 against an always-forge baseline. The report measures routing cost. Answer quality is out of scope.
+            Live Jev classified twelve representative Codex prompts into flash, craft or forge. Estimated quota fell from 16.2 to 8.3 against an always-forge baseline. The report measures routing cost. Answer quality is out of scope.
           </p>
         </div>
 

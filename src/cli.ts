@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { copyFileSync, mkdirSync, existsSync } from "node:fs";
+import { createRequire } from "node:module";
 import { join } from "node:path";
 import { runDemo } from "./demo.js";
 import { runDoctor } from "./doctor.js";
@@ -48,7 +49,8 @@ async function main(argv: string[]): Promise<number> {
   }
   if (!cmd) return launchCodex([]);
   if (cmd === "-v" || cmd === "--version" || cmd === "version") {
-    process.stdout.write("codex-sift 0.1.0\n");
+    const { version } = createRequire(import.meta.url)("../package.json") as { version: string };
+    process.stdout.write(`codex-sift ${version}\n`);
     return 0;
   }
   if (cmd === "doctor") return runDoctor();

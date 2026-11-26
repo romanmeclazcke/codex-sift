@@ -478,7 +478,7 @@ export function Journey() {
               <g ref={reg("ambient")} aria-hidden>
                 {[
                   { d: `M -140 70 C ${geo.cx * 0.35} 60, ${geo.cx * 0.55} 100, ${geo.cx - 106} 100`, t: 6, b: 0 },
-                  { d: `M -140 190 C ${geo.cx * 0.3} 190, ${geo.cx * 0.6} 100, ${geo.cx - 106} 100`, t: 7.5, b: 2 },
+                  { d: `M -140 190 C ${geo.cx * 0.3} 190, ${geo.cx * 0.6} 100, ${geo.cx - 106} 100`, t: 8.3, b: 2 },
                   { d: `M ${geo.W + 140} 80 C ${geo.W - geo.cx * 0.35} 60, ${geo.W - geo.cx * 0.55} 100, ${geo.cx + 106} 100`, t: 6.5, b: 1 },
                   { d: `M ${geo.W + 140} 200 C ${geo.W - geo.cx * 0.3} 200, ${geo.W - geo.cx * 0.6} 100, ${geo.cx + 106} 100`, t: 8, b: 3 },
                 ].map((a, i) => (
@@ -718,7 +718,7 @@ export function Journey() {
             </h1>
             <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-muted sm:mt-5 sm:text-[clamp(1rem,1.8vw,1.25rem)]">
               Each user turn goes to flash, craft or forge before Codex bills it. On twelve live prompts that cut estimated quota{" "}
-              <span className="text-ink">53.7%</span> versus always-forge.
+              <span className="text-ink">48.8%</span> versus always-forge.
             </p>
             <div className="pointer-events-auto mt-6 flex w-full max-w-sm flex-col items-stretch gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
               <MagneticButton href="#quick-start" className="w-full sm:w-auto">

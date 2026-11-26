@@ -1,7 +1,7 @@
 {
   "name": "codex-sift",
-  "version": "0.1.0",
-  "description": "Sift each Codex turn onto the cheapest model that can handle it. Judged by TypeSafe Jev, executed by the native Codex CLI.",
+  "version": "0.1.1",
+  "description": "Model router for OpenAI Codex CLI. Choose a model per coding task to manage token, credit, and quota usage.",
   "type": "module",
   "bin": {
     "codex-sift": "dist/cli.js"
@@ -29,10 +29,16 @@
   },
   "keywords": [
     "codex",
-    "jev",
-    "typesafe",
+    "openai-codex",
+    "codex-cli",
     "model-routing",
-    "cli"
+    "model-router",
+    "codex-model-routing",
+    "token-usage",
+    "cost-optimization",
+    "cli",
+    "typesafe",
+    "jev"
   ],
   "license": "MIT",
   "author": "Roman Meclazcke",

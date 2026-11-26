@@ -37,7 +37,7 @@ export const FAQ = [
   },
   {
     q: "How much quota can routing save?",
-    a: "On twelve live Jev prompts in reports/e2e-routing.md, estimated quota fell from 16.2 to 7.5 versus an always-forge baseline, a 53.7% cut. That measures routing cost, not answer quality.",
+    a: "On twelve live Jev prompts in reports/e2e-routing.md, estimated quota fell from 16.2 to 8.3 versus an always-forge baseline, a 48.8% cut. That measures routing cost, not answer quality.",
   },
   {
     q: "Who built Codex Sift?",
@@ -185,7 +185,7 @@ export const E2E_CASES: CaseResult[] = [
   { id: "typescript-error", prompt: "this TypeScript error: Type X is not assignable to type Y on the props", lane: "craft", expected: "craft", usage: 0.55, saved: 59.3 },
   { id: "suite-leak", prompt: "the auth test fails only when run with the full suite, find the leak", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
   { id: "auth-redesign", prompt: "redesign authentication across the Next.js app and the API gateway", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
-  { id: "websocket-race", prompt: "debug a race in websocket reconnect that duplicates subscriptions", lane: "craft", expected: "forge", usage: 0.55, saved: 59.3 },
+  { id: "websocket-race", prompt: "debug a race in websocket reconnect that duplicates subscriptions", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
   { id: "prod-migration", prompt: "ship a production database migration that changes user permissions and preserves existing sessions", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
 ];
 
@@ -193,12 +193,12 @@ export const E2E_SUMMARY = {
   cases: 12,
   live: 12,
   degraded: 0,
-  match: "11/12",
-  avgJevMs: 418,
+  match: "12/12",
+  avgJevMs: 249,
   baseline: 16.2,
-  routed: 7.5,
-  saved: 53.7,
-  mix: { flash: 4, craft: 5, forge: 3 } as Record<LaneId, number>,
+  routed: 8.3,
+  saved: 48.8,
+  mix: { flash: 4, craft: 4, forge: 4 } as Record<LaneId, number>,
 };
 
 export const STEPS = [

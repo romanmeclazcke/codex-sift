@@ -10,6 +10,10 @@ Jev does not write code. It returns typed signals in about 300 ms. Sift’s YAML
 
 This is a Codex-only router. It is not an MCP server, and it does not patch `~/.codex/config.toml`.
 
+To get started, run `npx codex-sift setup` with Node.js 20+, the Codex CLI, and a TypeSafe API key. Then run `npx codex-sift` to launch Codex with routing enabled.
+
+[Reduce Codex CLI token usage](https://codex-sift.vercel.app/guides/en) · [Cómo reducir el consumo de Codex CLI](https://codex-sift.vercel.app/guides/es) · [Routing benchmark](https://codex-sift.vercel.app/benchmark)
+
 ## Current E2E result
 
 The latest routing report in this repository was generated with:
@@ -25,13 +29,13 @@ Result:
 | Representative cases | 12 |
 | Live Jev cases | 12 |
 | Degraded cases | 0 |
-| Policy expectation match | 11/12 |
-| Average Jev latency | 418 ms |
+| Policy expectation match | 12/12 |
+| Average Jev latency | 249 ms |
 | Always-forge baseline | 16.20 |
-| Sift routed usage | 7.50 |
-| Estimated quota saved | 53.7% |
+| Sift routed usage | 8.30 |
+| Estimated quota saved | 48.8% |
 
-See [reports/e2e-routing.md](reports/e2e-routing.md) for the full table.
+See [reports/e2e-routing.md](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md) for the full table.
 
 This measures routing and quota efficiency against an always-forge baseline. It does not claim answer quality unless you run and score the same prompts through Codex.
 

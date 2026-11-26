@@ -9,9 +9,9 @@ Sift sits in front of Codex as a local `model_provider`. On every user turn it a
 ## Hard facts
 
 - Twelve live Jev prompts in `reports/e2e-routing.md`
-- Estimated quota 7.5 vs always-forge baseline 16.2 (53.7% saved)
-- Policy expectation match 11/12
-- Average Jev latency 418 ms in that run
+- Estimated quota 8.3 vs always-forge baseline 16.2 (48.8% saved)
+- Policy expectation match 12/12
+- Average Jev latency 249 ms in that run
 - Fail-open lane when Jev is down: craft (configurable)
 
 ## Who it is for
