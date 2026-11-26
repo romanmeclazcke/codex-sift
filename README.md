@@ -1,5 +1,9 @@
 # Codex Sift
 
+**Free, open-source model routing inside Codex CLI.**
+
+Save your strongest model for the turns that need it.
+
 Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/codex). It keeps the native Codex experience, but routes each user turn to the cheapest model lane that should be able to handle it.
 
 ## How much usage can Codex Sift save?
