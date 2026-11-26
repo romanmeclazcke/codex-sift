@@ -53,6 +53,8 @@ If you pin another model in `/model`, routing pauses. Pick **Sift** again to res
 
 ## Routing demo
 
+![Animated demo of Codex CLI requests routed through Sift to flash, craft, or forge](assets/readme/routing.gif)
+
 | Example | Lane | Why |
 | --- | --- | --- |
 | Explain package.json | `flash` | Short lookup |
