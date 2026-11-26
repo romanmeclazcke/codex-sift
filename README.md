@@ -12,7 +12,7 @@ This is a Codex-only router. It is not an MCP server, and it does not patch `~/.
 
 To get started, run `npx codex-sift setup` with Node.js 20+, the Codex CLI, and a TypeSafe API key. Then run `npx codex-sift` to launch Codex with routing enabled.
 
-[Reduce Codex CLI token usage](https://codex-sift.vercel.app/guides/en) · [Cómo reducir el consumo de Codex CLI](https://codex-sift.vercel.app/guides/es) · [Routing benchmark](https://codex-sift.vercel.app/benchmark)
+[Reduce Codex CLI token usage](https://codex-sift.vercel.app/guides/en) · [Cómo reducir el consumo de Codex CLI](https://codex-sift.vercel.app/guides/es) · [Routing benchmark](https://codex-sift.vercel.app/benchmark) · [Manual model switching vs Codex Sift](https://codex-sift.vercel.app/compare)
 
 ## Current E2E result
 

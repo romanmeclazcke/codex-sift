@@ -8,7 +8,8 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
       },
-      // Generative engines / AI crawlers — allow for GEO citations
+      // Search and training crawlers use separate user agents.
+      { userAgent: "OAI-SearchBot", allow: "/" },
       { userAgent: "GPTBot", allow: "/" },
       { userAgent: "ChatGPT-User", allow: "/" },
       { userAgent: "ClaudeBot", allow: "/" },

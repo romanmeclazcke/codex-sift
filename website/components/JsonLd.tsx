@@ -1,62 +1,53 @@
-import { AUTHOR, FAQ, REPO_URL, SITE_URL } from "@/lib/content";
+import { AUTHOR, NPM_URL, REPO_URL, SITE_URL } from "@/lib/content";
 
-export function JsonLd() {
-  const person = {
-    "@type": "Person",
-    name: AUTHOR.name,
-    url: AUTHOR.url,
-    sameAs: [AUTHOR.url, AUTHOR.x, AUTHOR.linkedin],
-  };
+const author = {
+  "@type": "Person",
+  "@id": `${SITE_URL}/#author`,
+  name: AUTHOR.name,
+  url: AUTHOR.url,
+  sameAs: [AUTHOR.x, AUTHOR.linkedin],
+};
 
-  const software = {
-    "@type": "SoftwareApplication",
-    name: "Codex Sift",
-    applicationCategory: "DeveloperApplication",
-    operatingSystem: "macOS, Linux, Windows",
-    license: "https://opensource.org/licenses/MIT",
-    url: SITE_URL,
-    codeRepository: REPO_URL,
-    downloadUrl: "https://www.npmjs.com/package/codex-sift",
-    installUrl: "https://www.npmjs.com/package/codex-sift",
-    softwareVersion: "0.1.0",
-    description:
-      "Model router for the OpenAI Codex CLI. Routes each user turn to flash, craft or forge using TypeSafe Jev signals and a YAML policy.",
-    author: person,
-    creator: person,
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
-  };
+export function JsonLd({ data }: { data: Record<string, unknown> }) {
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{
+    __html: JSON.stringify({ "@context": "https://schema.org", ...data }).replace(/</g, "\\u003c"),
+  }} />;
+}
 
-  const website = {
-    "@type": "WebSite",
-    name: "Codex Sift",
-    url: SITE_URL,
-    description: software.description,
-    publisher: person,
-    inLanguage: "en",
-  };
-
-  const faq = {
-    "@type": "FAQPage",
-    mainEntity: FAQ.map((item) => ({
-      "@type": "Question",
-      name: item.q,
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: item.a,
+export function ProductJsonLd() {
+  return <JsonLd data={{
+    "@graph": [
+      { "@type": "WebSite", "@id": `${SITE_URL}/#website`, name: "Codex Sift", url: SITE_URL, publisher: { "@id": author["@id"] }, inLanguage: ["en", "es"] },
+      {
+        "@type": ["SoftwareApplication", "SoftwareSourceCode"],
+        "@id": `${SITE_URL}/#software`,
+        name: "Codex Sift",
+        applicationCategory: "DeveloperApplication",
+        license: "https://opensource.org/licenses/MIT",
+        url: SITE_URL,
+        codeRepository: REPO_URL,
+        installUrl: NPM_URL,
+        description: "Open-source model router for the OpenAI Codex CLI. Selects a model and reasoning effort for each turn.",
+        author: { "@id": author["@id"] },
+        offers: { "@type": "Offer", price: 0, priceCurrency: "USD" },
       },
-    })),
-  };
+      author,
+    ],
+  }} />;
+}
 
-  const graph = {
-    "@context": "https://schema.org",
-    "@graph": [website, software, person, faq],
-  };
-
-  return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(graph) }} />
-  );
+export function ArticleJsonLd({ path, title, description, language }: {
+  path: string;
+  title: string;
+  description: string;
+  language: string;
+}) {
+  const url = new URL(path, SITE_URL).href;
+  return <JsonLd data={{
+    "@graph": [
+      { "@type": "Article", "@id": `${url}#article`, headline: title, description, inLanguage: language,
+        mainEntityOfPage: url, author: { "@id": author["@id"] }, about: { "@id": `${SITE_URL}/#software` } },
+      author,
+    ],
+  }} />;
 }

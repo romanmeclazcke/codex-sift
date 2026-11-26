@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ArticleJsonLd } from "@/components/JsonLd";
 import { InstallActions } from "@/components/InstallActions";
 import { POLICY_URL, REPORT_URL, REPO_URL } from "@/lib/content";
 
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
 export default function Benchmark() {
   return (
     <main className="mx-auto max-w-3xl space-y-6 px-5 py-12">
+      <ArticleJsonLd path="/benchmark" title={title} description={description} language="en" />
       <Link href="/">Codex Sift</Link>
       <h1 className="text-4xl font-semibold tracking-tight">{title}</h1>
       <p>On November 26, 2026, Codex Sift classified 12 representative requests with TypeSafe Jev. The YAML policy sent four to flash, four to craft, and four to forge.</p>
@@ -46,6 +48,7 @@ npm run e2e:report`}</pre>
       <p>Time includes CLI startup and, for Sift, measured routing latency. Cached input is included in total input. These three short tasks had one run per strategy in a fixed order. The results cover exact answers on these tasks. Repository edits, full proxy overhead and monetary cost would require a separate benchmark.</p>
       <p>With a signed-in Codex CLI and a TypeSafe API key, run <code>node tools/compare-models.mjs</code> after <code>npm ci</code>.</p>
       <a className="underline" href={`${REPO_URL}/blob/main/reports/model-comparison.json`}>Raw token counts and scores</a>
+      <Link className="block underline" href="/compare">Manual model switching vs Codex Sift</Link>
       <InstallActions page="benchmark" />
     </main>
   );

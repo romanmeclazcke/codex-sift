@@ -1,50 +1,20 @@
 # Codex Sift
 
-> Model router for the OpenAI Codex CLI. Routes each user turn to the cheapest model lane that should handle it.
+> An open-source model router for the OpenAI Codex CLI. It chooses a model and reasoning effort per turn while keeping the native Codex interface.
 
-Codex Sift was built by Roman Meclazcke. It is MIT licensed.
+Codex Sift uses TypeSafe Jev to classify a redacted excerpt of each user turn. The YAML policy maps the result to a model and reasoning effort. Setup needs Node.js 20+, Codex CLI and a TypeSafe API key.
 
-Sift sits in front of Codex as a local `model_provider`. On every user turn it asks TypeSafe Jev for typed signals (task_kind, difficulty, needs_reasoning, needs_planning, high_stakes, cross_cutting). Your `policy.yaml` maps those signals to flash, craft or forge. Only `model` and `reasoning.effort` are rewritten; the Codex TUI, sessions, tools and sandbox stay native.
+## Documentation
 
-## Hard facts
+- [Homepage](https://codex-sift.vercel.app/): how routing works and installation.
+- [Reduce token usage in Codex CLI](https://codex-sift.vercel.app/guides/en): model selection, context and measurement.
+- [Reducir el consumo de Codex CLI](https://codex-sift.vercel.app/guides/es): guide in Spanish.
+- [Manual model switching vs Codex Sift](https://codex-sift.vercel.app/compare): how to choose between workflows.
+- [npm package](https://www.npmjs.com/package/codex-sift): install with `npx codex-sift setup`, then run `npx codex-sift`.
+- [Source repository](https://github.com/romanmeclazcke/codex-sift): code and MIT license.
 
-- Twelve live Jev prompts in `reports/e2e-routing.md`
-- Estimated quota 8.3 vs always-forge baseline 16.2 (48.8% saved)
-- Policy expectation match 12/12
-- Average Jev latency 249 ms in that run
-- Fail-open lane when Jev is down: craft (configurable)
+## Benchmarks
 
-## Who it is for
-
-Developers who use the OpenAI Codex CLI and do not want every turn billed on the strongest model.
-
-## Who it is not for
-
-It is Codex-only. It is not an MCP server and does not patch `~/.codex/config.toml`.
-
-## Install
-
-```bash
-npm install -g codex-sift
-codex-sift setup
-```
-
-Or: `npx codex-sift`
-
-## Links
-
-- Site: https://codex-sift.vercel.app
-- npm: https://www.npmjs.com/package/codex-sift
-- Source: https://github.com/romanmeclazcke/codex-sift
-- README: https://github.com/romanmeclazcke/codex-sift#readme
-- E2E report: https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md
-- Author: https://github.com/romanmeclazcke
-- X: https://x.com/romanmeclazcke_
-- LinkedIn: https://www.linkedin.com/in/roman-meclazcke
-- TypeSafe Jev docs: https://docs.typesafe.ai
-- Codex docs: https://developers.openai.com/codex
-
-## Optional
-
-- Default policy: https://github.com/romanmeclazcke/codex-sift/blob/main/policy.yaml
-- Contributing: https://github.com/romanmeclazcke/codex-sift/blob/main/CONTRIBUTING.md
+- [Routing benchmark and methodology](https://codex-sift.vercel.app/benchmark): on November 26, 2026, 12 classified prompts used an estimated 48.8% less relative quota than routing every turn to forge under the repository policy.
+- [Raw CLI comparison](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/model-comparison.json): measured tokens, time and exact-answer scores from three short tasks under fixed, manual and Sift-selected modes.
+- [Default policy](https://github.com/romanmeclazcke/codex-sift/blob/main/policy.yaml): routing rules and weights behind the quota estimate.

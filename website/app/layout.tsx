@@ -3,13 +3,12 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import { JsonLd } from "@/components/JsonLd";
 import { AUTHOR, SITE_URL } from "@/lib/content";
 import "./globals.css";
 
 const title = "Codex Sift — Model router for the Codex CLI";
 const description =
-  "Codex Sift routes each Codex CLI turn to flash, craft or forge before the turn is billed. TypeSafe Jev scores the request; your policy.yaml picks the lane. On twelve live prompts that cut estimated quota 48.8% versus always-forge. Built by Roman Meclazcke.";
+  "Choose a model and reasoning effort for each Codex CLI task. Install the open-source router and see reproducible token and quota measurements.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -67,7 +66,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
-        <JsonLd />
         {children}
         <Analytics />
         <SpeedInsights />
