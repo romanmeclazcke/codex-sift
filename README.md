@@ -17,6 +17,8 @@ Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/
 
 **Codex Sift used 48.8% less estimated Codex quota** in a November 26, 2026 routing test on 12 representative requests, compared with sending every request to the `forge` lane (`gpt-5.6-sol`, high reasoning effort). The routing policy estimates quota from model and reasoning-effort weights. The estimate is specific to this workload and policy. [Full routing report and per-request results](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md)
 
+![Estimated quota over 12 requests: 16.20 units on always-forge and 8.30 units with Codex Sift](assets/readme/quota.png)
+
 In a separate live Codex CLI test on three short coding questions, the models selected by Sift used **8.7% fewer input tokens** than always using `forge` (54,458 vs. 59,654). Both strategies answered **3/3** correctly. Sift took 17.7 seconds in total and the fixed model took 16.0 seconds. Each strategy ran once, and the input counts include cached tokens. [Benchmark methodology and comparison](https://codex-sift.vercel.app/benchmark) · [Raw CLI measurements](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/model-comparison.json)
 
 To reproduce the routing test with your TypeSafe API key, run `npm ci` and `npm run e2e:report` from the repository.
