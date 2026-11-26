@@ -247,3 +247,7 @@ npx tsx src/cli.ts route "rename the unused helper"
 ## License
 
 MIT
+
+## Star history
+
+[![Codex Sift GitHub stars over time](https://api.star-history.com/svg?repos=romanmeclazcke/codex-sift&type=Date)](https://www.star-history.com/#romanmeclazcke/codex-sift&Date)
