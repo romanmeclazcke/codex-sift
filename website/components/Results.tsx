@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { E2E_CASES, E2E_SUMMARY as S, LANES, LANE_ORDER, REPORT_URL, type LaneId } from "@/lib/content";
+import { ROUTING_BENCHMARK as S } from "@/lib/benchmark-data";
+import { LANE_ORDER, REPORT_URL, type LaneId } from "@/lib/content";
 import { TiltCard } from "./TiltCard";
 
 const LANE_FILL: Record<LaneId, string> = { flash: "#BAE6FD", craft: "#38BDF8", forge: "#0EA5E9" };
-const BASE = 1.35;
 
 function Bar({ label, sub, value, max, color, delay }: { label: string; sub: string; value: number; max: number; color: string; delay: number }) {
   const calm = useReducedMotion();
@@ -35,32 +35,32 @@ function Bar({ label, sub, value, max, color, delay }: { label: string; sub: str
 
 export function Results() {
   const [hover, setHover] = useState<number | null>(null);
-  const active = hover === null ? null : E2E_CASES[hover];
+  const active = hover === null ? null : S.rows[hover];
 
   return (
     <section id="results" className="relative border-t border-line bg-wash px-5 pb-28 pt-32">
       <div className="mx-auto max-w-6xl">
         <div className="mx-auto max-w-3xl text-center">
           <p className="eyebrow">Results</p>
-          <h2 className="mt-3 text-5xl font-semibold tracking-[-0.04em] sm:text-6xl">48.8% less estimated quota on twelve prompts</h2>
+          <h2 className="mt-3 text-5xl font-semibold tracking-[-0.04em] sm:text-6xl">{S.saved}% less estimated quota on {S.turns} prompts</h2>
           <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-muted">
-            Live Jev classified twelve representative Codex prompts into flash, craft or forge. Estimated quota fell from 16.2 to 8.3 against an always-forge baseline. The report measures routing cost. Answer quality is out of scope.
+            The routing test classified representative Codex prompts into flash, craft or forge. Estimated quota fell from {S.alwaysForge.toFixed(1)} to {S.actual.toFixed(1)} policy units against an always-forge baseline.
           </p>
         </div>
 
         <div className="mt-16 grid gap-6 lg:grid-cols-[1.15fr_1fr]">
           <TiltCard className="p-7 sm:p-9">
-            <p className="font-mono text-xs uppercase tracking-wider text-muted">Estimated Codex quota, 12 prompts</p>
+            <p className="font-mono text-xs uppercase tracking-wider text-muted">Estimated Codex quota, {S.turns} prompts</p>
             <div className="mt-5 flex items-end gap-3">
               <span className="text-7xl font-semibold leading-none tracking-[-0.05em] text-accent-2 sm:text-8xl">{S.saved}%</span>
               <span className="pb-2 text-sm text-muted">saved vs always-forge</span>
             </div>
             <div className="mt-9 space-y-6">
-              <Bar label="Always-forge baseline" sub="every turn on gpt-5.6-sol" value={S.baseline} max={S.baseline} color="#CBD5E1" delay={0} />
-              <Bar label="Sift routed" sub="flash + craft + forge lanes" value={S.routed} max={S.baseline} color="#38BDF8" delay={0.15} />
+              <Bar label="Always-forge baseline" sub={`every turn on ${S.forgeModel}`} value={S.alwaysForge} max={S.alwaysForge} color="#CBD5E1" delay={0} />
+              <Bar label="Sift routed" sub="flash + craft + forge lanes" value={S.actual} max={S.alwaysForge} color="#38BDF8" delay={0.15} />
             </div>
             <p className="mt-8 border-t border-line pt-5 text-[13px] leading-relaxed text-muted">
-              Measured by <code className="font-mono text-ink">npm run e2e:report</code> with live Jev answers. It measures routing and quota efficiency against the baseline. It does not claim answer quality.{" "}
+              The estimate from <code className="font-mono text-ink">npm run e2e:report</code> uses the policy’s model and reasoning-effort weights.{" "}
               <a href={REPORT_URL} target="_blank" rel="noopener noreferrer" className="text-accent-ink underline underline-offset-4 hover:text-ink">
                 Read the full report
               </a>
@@ -70,9 +70,9 @@ export function Results() {
 
           <div className="grid grid-cols-2 gap-4">
             {[
-              ["12 / 12", "turns classified by live Jev", `${S.degraded} degraded`],
-              [S.match, "landed on the expected lane", "policy expectation"],
-              [`${S.avgJevMs} ms`, "average Jev latency", "in this run"],
+              [`${S.liveTurns} / ${S.turns}`, "turns classified by live Jev", `${S.degraded} degraded`],
+              [`${S.match} / ${S.turns}`, "landed on the expected lane", "policy expectation"],
+              [S.avgJevMs === null ? "—" : `${S.avgJevMs} ms`, "average Jev latency", "in this run"],
               [`${S.mix.flash} · ${S.mix.craft} · ${S.mix.forge}`, "flash · craft · forge", "lane mix"],
             ].map(([big, label, sub]) => (
               <TiltCard key={label} className="p-5">
@@ -88,23 +88,23 @@ export function Results() {
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
               <h3 className="text-xl font-semibold tracking-tight">Lane usage per prompt</h3>
-              <p className="mt-1 text-sm text-muted">Gray is the always-forge cost (1.35). Blue is what the routed lane used.</p>
+              <p className="mt-1 text-sm text-muted">Gray shows the always-forge estimate. Blue shows the routed lane estimate.</p>
             </div>
             <ul className="flex flex-wrap gap-4 font-mono text-xs text-muted" aria-label="Legend">
               {LANE_ORDER.map((id) => (
                 <li key={id} className="flex items-center gap-2">
                   <span className="h-2.5 w-2.5 rounded-sm" style={{ background: LANE_FILL[id] }} />
-                  {id} · {LANES[id].model}
+                  {id} · {S.rows.find((row) => row.actualLane === id)?.model ?? "unused"}
                 </li>
               ))}
             </ul>
           </div>
           <div className="mt-8 flex h-40 items-end gap-1.5 sm:gap-3" onPointerLeave={() => setHover(null)}>
-            {E2E_CASES.map((c, i) => (
+            {S.rows.map((c, i) => (
               <button
                 key={c.id}
                 type="button"
-                aria-label={`${c.prompt}: routed to ${c.lane}, usage ${c.usage} of ${BASE}`}
+                aria-label={`${c.prompt}: routed to ${c.actualLane}, estimated usage ${c.actualUsage.toFixed(2)} of ${c.baselineUsage.toFixed(2)}`}
                 onPointerEnter={() => setHover(i)}
                 onFocus={() => setHover(i)}
                 onBlur={() => setHover(null)}
@@ -113,7 +113,7 @@ export function Results() {
                 <span className="absolute inset-x-0 bottom-0 h-full rounded-md bg-line/70 transition-colors group-hover:bg-line" />
                 <motion.span
                   className="absolute inset-x-0 bottom-0 origin-bottom rounded-md"
-                  style={{ background: LANE_FILL[c.lane], height: `${(c.usage / BASE) * 100}%` }}
+                  style={{ background: LANE_FILL[c.actualLane as LaneId], height: `${(c.actualUsage / c.baselineUsage) * 100}%` }}
                   initial={{ scaleY: 0 }}
                   whileInView={{ scaleY: 1 }}
                   viewport={{ once: true, margin: "-60px" }}
@@ -126,9 +126,9 @@ export function Results() {
           <div className="mt-5 min-h-[3.25rem] rounded-xl bg-wash px-4 py-3 text-sm" aria-live="polite">
             {active ? (
               <>
-                <span className="font-mono text-accent-ink">{active.lane}</span> · {active.usage.toFixed(2)} vs {BASE} ({active.saved.toFixed(1)}% saved) —{" "}
+                <span className="font-mono text-accent-ink">{active.actualLane}</span> · {active.actualUsage.toFixed(2)} vs {active.baselineUsage.toFixed(2)} ({active.savedPct.toFixed(1)}% saved) —{" "}
                 <span className="text-muted">“{active.prompt}”</span>
-                {active.lane !== active.expected && <span className="text-muted"> · policy expected {active.expected}</span>}
+                {active.actualLane !== active.expectedLane && <span className="text-muted"> · policy expected {active.expectedLane}</span>}
               </>
             ) : (
               <span className="text-muted">Hover or focus a bar to see the prompt behind it.</span>

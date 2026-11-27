@@ -1,6 +1,6 @@
 {
   "name": "codex-sift",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Model router for OpenAI Codex CLI. Choose a model per coding task to manage token, credit, and quota usage.",
   "type": "module",
   "bin": {
@@ -22,7 +22,9 @@
     "test": "tsx --test src/*.test.ts",
     "e2e": "tsx src/cli.ts e2e",
     "e2e:report": "node dist/cli.js e2e --out reports/e2e-routing.md --json-out reports/e2e-routing.json",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "benchmark:tasks": "npm run build && node tools/benchmark-tasks.mjs",
+    "benchmark:tasks:smoke": "npm run benchmark:tasks -- --smoke --trials 2"
   },
   "engines": {
     "node": ">=20"

@@ -23,7 +23,7 @@ export default function Home() {
         <footer className="mx-auto flex max-w-6xl flex-wrap gap-x-6 gap-y-3 px-5 py-8 text-sm">
           <Link className="underline" href="/guides/en">Reduce Codex CLI token usage</Link>
           <Link className="underline" href="/guides/es" hrefLang="es" lang="es">Cómo reducir el consumo de Codex CLI</Link>
-          <Link className="underline" href="/benchmark">Routing benchmark</Link>
+          <Link className="underline" href="/benchmark">Routing and task benchmarks</Link>
           <Link className="underline" href="/compare">Manual model switching vs Codex Sift</Link>
         </footer>
       </main>

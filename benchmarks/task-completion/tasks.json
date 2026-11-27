@@ -1,0 +1,20 @@
+[
+  {
+    "id": "catalog",
+    "kind": "Localized rename",
+    "files": ["products.mjs", "catalog.mjs"],
+    "prompt": "In this product catalog, rename the exported function findProduct to getProduct in products.mjs and update its consumer in catalog.mjs. Keep the existing lookup and formatting behavior, and remove the old export. Run the existing tests."
+  },
+  {
+    "id": "delimited",
+    "kind": "Parsing bug",
+    "files": ["row.mjs"],
+    "prompt": "The parseRow function in row.mjs decodes a single CSV record, but it breaks when a field contains a quoted comma. Fix it to preserve commas inside quoted fields and decode doubled quotes inside a quoted field as a single literal quote. Preserve existing behavior for unquoted fields, including whitespace and empty fields. Throw a SyntaxError for an unclosed quote, a quote inside an unquoted field, or other characters after a closing quote before the delimiter or end of record. The function receives one line without a trailing newline. Run the existing tests."
+  },
+  {
+    "id": "inventory",
+    "kind": "Cross-module correctness",
+    "files": ["inventory.mjs", "transfer.mjs"],
+    "prompt": "The warehouse transfer flow can oversell stock when two moves overlap, and a failed destination credit can leave a partial transfer. Fix move in transfer.mjs using the inventory abstraction in inventory.mjs. Concurrent moves through the same Inventory instance must be atomic across source and destination, including when roles overlap. Insufficient stock must still throw 'insufficient stock'. If a write fails, neither balance should change and the exception must reach the caller. Keep read and write compatible with existing callers, accept only positive safe integer transfer amounts, and treat a valid move from a bin to itself as a no-op. Run the existing tests."
+  }
+]

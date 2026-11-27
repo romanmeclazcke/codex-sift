@@ -44,18 +44,47 @@ function isSelf(bin: string): boolean {
 
 export function shouldProxy(argv: string[]): boolean {
   if (process.env.SIFT_DISABLED === "1") return false;
-  if (argv.includes("--sift-off")) return false;
-  const first = argv.find((a) => !a.startsWith("-"));
+  const options = wrapperOptions(argv);
+  if (options.includes("--sift-off")) return false;
+  const first = options.find((arg, index) => !arg.startsWith("-")
+    && !["-c", "--config", "-m", "--model", "-p", "--profile", "-C", "--cd"].includes(options[index - 1]));
   if (first && NO_PROXY.has(first)) return false;
   return true;
 }
 
-function explicitModel(argv: string[]): string | null {
-  for (let i = 0; i < argv.length; i++) {
-    if (argv[i] === "-m" || argv[i] === "--model") return argv[i + 1] || null;
-    if (argv[i].startsWith("--model=")) return argv[i].slice("--model=".length);
+function wrapperOptions(argv: string[]): string[] {
+  const separator = argv.indexOf("--");
+  return separator === -1 ? argv : argv.slice(0, separator);
+}
+
+function configValue(args: string[], key: string): string | undefined {
+  let value: string | undefined;
+  const assignment = new RegExp(`^\\s*${key}\\s*=\\s*(.+?)\\s*$`);
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    let override: string | undefined;
+    if (arg === "-c" || arg === "--config") override = args[++i];
+    else if (arg.startsWith("--config=")) override = arg.slice("--config=".length);
+    else if (arg.startsWith("-c") && !arg.startsWith("--")) override = arg.slice(2).replace(/^=/, "");
+    const parsed = override?.match(assignment)?.[1];
+    if (parsed) value = parsed.replace(/^(["'])(.*)\1$/, "$2");
   }
-  return null;
+  return value;
+}
+
+function explicitModel(args: string[]): string | undefined {
+  let model: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (arg === "--model" || arg === "-m") model = args[++i];
+    else if (arg.startsWith("--model=")) model = arg.slice("--model=".length);
+    else if (arg.startsWith("-m") && !arg.startsWith("--")) model = arg.slice(2).replace(/^=/, "");
+  }
+  return model ?? configValue(args, "model");
+}
+
+export function codexHome(): string {
+  return process.env.CODEX_HOME || join(process.env.HOME || ".", ".codex");
 }
 
 function installSkill(): void {
@@ -74,27 +103,35 @@ function forcedLane(argv: string[]): string | null {
 
 export async function launchCodex(argv: string[], policy?: Policy): Promise<number> {
   loadLocalEnv();
-  const resolved = policy || loadPolicy();
   const bin = resolveCodexBin();
-  const cleaned = argv.filter((a) => a !== "--sift-off" && !a.startsWith("--sift-lane="));
-  if (!shouldProxy(argv)) {
-    return await exec(bin, cleaned);
-  }
+  const options = wrapperOptions(argv);
+  const cleaned = [
+    ...options.filter((a) => a !== "--sift-off" && !a.startsWith("--sift-lane=")),
+    ...argv.slice(options.length),
+  ];
+  if (!shouldProxy(argv)) return await exec(bin, cleaned);
 
-  const pinLane = forcedLane(argv);
-  if (pinLane) {
+  const resolved = policy || loadPolicy();
+  const codexOptions = wrapperOptions(cleaned);
+  const pinned = explicitModel(codexOptions);
+  if (pinned && pinned !== resolved.virtual_model.slug) return await exec(bin, cleaned);
+
+  const pinLane = forcedLane(options);
+  if (pinLane && !pinned) {
     const spec = resolved.lanes[pinLane];
     if (!spec) throw new Error(`Unknown Sift lane '${pinLane}'`);
-    return await exec(bin, ["-c", `model="${spec.model}"`, ...cleaned]);
+    const overrides = ["-c", `model=${JSON.stringify(spec.model)}`];
+    if (spec.effort && configValue(codexOptions, "model_reasoning_effort") === undefined) {
+      overrides.push("-c", `model_reasoning_effort=${JSON.stringify(spec.effort)}`);
+    }
+    return await exec(bin, [...overrides, ...cleaned]);
   }
 
-  const pinned = explicitModel(cleaned);
-  if (pinned && pinned !== resolved.virtual_model.slug) {
-    return await exec(bin, cleaned);
+  try {
+    installSkill();
+  } catch {
+    if (process.env.SIFT_QUIET !== "1") process.stderr.write("codex-sift: could not install the sift-explain skill\n");
   }
-
-  mkdirSync(siftHome(), { recursive: true });
-  installSkill();
   const { server, url } = await startProxy(resolved);
   let catalog = "";
   try {
@@ -148,14 +185,18 @@ function exec(bin: string, args: string[]): Promise<number> {
     };
     process.on("SIGINT", stop);
     process.on("SIGTERM", stop);
-    child.on("exit", (code, signal) => {
+    function cleanup() {
       process.off("SIGINT", stop);
       process.off("SIGTERM", stop);
-      if (signal) {
-        resolve(1);
-        return;
-      }
-      resolve(code ?? 0);
+    }
+    child.once("error", (error) => {
+      cleanup();
+      process.stderr.write(`codex-sift: could not launch Codex (${error.message})\n`);
+      resolve(1);
+    });
+    child.once("exit", (code, signal) => {
+      cleanup();
+      resolve(signal ? 1 : code ?? 0);
     });
   });
 }

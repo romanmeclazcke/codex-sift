@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useMotionValueEvent, useScroll } from "motion/react";
+import { ROUTING_BENCHMARK } from "@/lib/benchmark-data";
 import { LANES, LANE_ORDER, SIGNALS, REPO_SLUG, REPO_URL, type LaneId } from "@/lib/content";
 import {
   SPINE_START,
@@ -17,6 +18,11 @@ import {
 import { useReducedMotion } from "@/lib/hooks";
 import { GitHubMark, MagneticButton } from "./Buttons";
 import { Tooltip, type TipContent, type TooltipHandle } from "./Tooltip";
+
+function routingEstimate(lane: LaneId) {
+  const sample = ROUTING_BENCHMARK.rows.find((row) => row.actualLane === lane);
+  return sample ? `est. usage ${sample.actualUsage.toFixed(2)}/${sample.baselineUsage.toFixed(2)}` : "";
+}
 
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -633,7 +639,7 @@ export function Journey() {
                         effort {info.effort}
                       </text>
                       <text x={cx0 + 16} y={geo.card.y + 106} fontSize={fs.xs - 1} fill="#64748B">
-                        usage {info.usage.toFixed(2)}/1.35
+                        {routingEstimate(id)}
                       </text>
                       <g className="dots">
                         <circle cx={cx0 + 20} cy={geo.card.y + 136} r="3.2" />
@@ -717,8 +723,8 @@ export function Journey() {
               Model router for the Codex CLI
             </h1>
             <p className="mt-4 max-w-xl text-[0.95rem] leading-relaxed text-muted sm:mt-5 sm:text-[clamp(1rem,1.8vw,1.25rem)]">
-              Each user turn goes to flash, craft or forge before Codex bills it. On twelve live prompts that cut estimated quota{" "}
-              <span className="text-ink">48.8%</span> versus always-forge.
+              Each user turn goes to flash, craft or forge before Codex bills it. The policy estimated a quota reduction of{" "}
+              <span className="text-ink">{ROUTING_BENCHMARK.saved}%</span> versus always-forge across {ROUTING_BENCHMARK.turns} prompts.
             </p>
             <div className="pointer-events-auto mt-6 flex w-full max-w-sm flex-col items-stretch gap-3 sm:max-w-none sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
               <MagneticButton href="#quick-start" className="w-full sm:w-auto">

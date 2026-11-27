@@ -1,11 +1,11 @@
 import { redact } from "./redact.js";
-import { applyPolicy, fallbackSignals } from "./policy.js";
+import { applyPolicy, fallbackSignals, laneFromName } from "./policy.js";
 import type { Decision, Policy, Signals } from "./types.js";
 
 const QUESTIONS = {
   task_kind: {
     type: "choice",
-    instructions: "What kind of coding-agent turn is this user request?",
+    instructions: "What kind of coding-agent turn is the current task? Use the previous task to resolve references in a continuation.",
     criteria: {
       ask: "Explain, search, or answer without editing code",
       edit: "Localized code change in known files",
@@ -18,7 +18,7 @@ const QUESTIONS = {
   },
   difficulty: {
     type: "score",
-    instructions: "How hard is this for a coding agent?",
+    instructions: "How hard is the current task for a coding agent? Resolve references from the previous task and consider whether a retry follows a failed attempt.",
     criteria: [
       "Trivial: rename, one-liner, or lookup",
       "Localized: one file or a small known pattern",
@@ -55,52 +55,62 @@ export class JevUnavailable extends Error {
   }
 }
 
-type JevAnswer = {
-  type?: string;
-  choice?: string;
-  score?: number;
-  noul?: number;
-  confidence?: number;
-};
-
-type JevResponse = {
-  model?: string;
-  answers?: Record<string, JevAnswer>;
-};
-
 function typesafeBase(): string {
   return (process.env.TYPESAFE_BASE_URL || "https://api.typesafe.ai").replace(/\/$/, "");
 }
 
-function readNoul(answer: JevAnswer | undefined): number {
-  if (!answer) return 0;
-  if (typeof answer.noul === "number") return answer.noul;
-  return 0;
+function answerRecord(value: unknown, name: string): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new JevUnavailable(`Invalid Jev response for ${name}`);
+  }
+  return value as Record<string, unknown>;
 }
 
-export function answersToSignals(answers: Record<string, JevAnswer>, hasImage: boolean): Signals {
-  const kind = answers.task_kind || {};
-  const difficulty = answers.difficulty || {};
-  const kindConf = typeof kind.confidence === "number" ? kind.confidence : 1;
-  const diffConf = typeof difficulty.confidence === "number" ? difficulty.confidence : 0;
-  const confidences = [kindConf];
-  if (diffConf > 0) confidences.push(diffConf);
+function readAnswer(
+  answers: Record<string, unknown>,
+  name: keyof typeof QUESTIONS,
+): Record<string, unknown> {
+  const answer = answerRecord(answers[name], name);
+  if (answer.type !== QUESTIONS[name].type) {
+    throw new JevUnavailable(`Unexpected Jev answer type for ${name}`);
+  }
+  return answer;
+}
+
+function readRange(value: unknown, max: number, name: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > max) {
+    throw new JevUnavailable(`Invalid Jev value for ${name}`);
+  }
+  return value;
+}
+
+export function answersToSignals(value: unknown, hasImage: boolean): Signals {
+  const answers = answerRecord(value, "answers");
+  const kind = readAnswer(answers, "task_kind");
+  const difficulty = readAnswer(answers, "difficulty");
+  const choice = kind.choice;
+  if (typeof choice !== "string" || !Object.hasOwn(QUESTIONS.task_kind.criteria, choice)) {
+    throw new JevUnavailable("Invalid Jev task kind");
+  }
+  const kindConf = readRange(kind.confidence, 1, "task_kind.confidence");
+  const diffConf = readRange(difficulty.confidence, 1, "difficulty.confidence");
+  const readNoul = (name: keyof typeof QUESTIONS) => readRange(readAnswer(answers, name).noul, 1, name);
   return {
-    task_kind: kind.choice || "edit",
+    task_kind: choice,
     task_kind_confidence: kindConf,
-    difficulty: typeof difficulty.score === "number" ? difficulty.score : 1,
+    difficulty: readRange(difficulty.score, QUESTIONS.difficulty.criteria.length - 1, "difficulty.score"),
     difficulty_confidence: diffConf,
-    needs_reasoning: readNoul(answers.needs_reasoning),
-    needs_planning: readNoul(answers.needs_planning),
-    high_stakes: readNoul(answers.high_stakes),
-    cross_cutting: readNoul(answers.cross_cutting),
-    is_chitchat: readNoul(answers.is_chitchat),
-    confidence: Math.min(...confidences),
+    needs_reasoning: readNoul("needs_reasoning"),
+    needs_planning: readNoul("needs_planning"),
+    high_stakes: readNoul("high_stakes"),
+    cross_cutting: readNoul("cross_cutting"),
+    is_chitchat: readNoul("is_chitchat"),
+    confidence: diffConf === 0 ? kindConf : Math.min(kindConf, diffConf),
     has_image: hasImage,
   };
 }
 
-export async function callJev(state: unknown, policy: Policy): Promise<JevResponse> {
+export async function callJev(state: unknown, policy: Policy): Promise<unknown> {
   const apiKey = process.env.TYPESAFE_API_KEY;
   if (!apiKey) throw new JevUnavailable("TYPESAFE_API_KEY is not set");
   const controller = new AbortController();
@@ -120,10 +130,10 @@ export async function callJev(state: unknown, policy: Policy): Promise<JevRespon
       signal: controller.signal,
     });
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      throw new JevUnavailable(`Jev HTTP ${res.status} ${text.slice(0, 180)}`);
+      await res.body?.cancel().catch(() => {});
+      throw new JevUnavailable(`Jev HTTP ${res.status}`);
     }
-    return (await res.json()) as JevResponse;
+    return await res.json();
   } catch (err) {
     if (err instanceof JevUnavailable) throw err;
     const message = err instanceof Error ? err.message : String(err);
@@ -133,14 +143,38 @@ export async function callJev(state: unknown, policy: Policy): Promise<JevRespon
   }
 }
 
+export function fallbackTurn(
+  policy: Policy,
+  prompt: string,
+  hasImage: boolean,
+  reason: string,
+  jevMs = 0,
+): Decision {
+  const redacted = redact(prompt);
+  return {
+    ...laneFromName(policy, policy.on_jev_down),
+    signals: fallbackSignals(redacted, hasImage),
+    reason: [reason],
+    prompt_chars: redacted.length,
+    jev_ms: jevMs,
+    degraded: true,
+  };
+}
+
 export async function decideTurn(
   policy: Policy,
   prompt: string,
-  extras: { hasImage?: boolean; retry?: boolean; previousLane?: string } = {},
+  extras: {
+    hasImage?: boolean;
+    retry?: boolean;
+    previousLane?: string;
+    previousTask?: string;
+  } = {},
 ): Promise<Decision> {
   const redacted = redact(prompt);
   const hasImage = extras.hasImage ?? false;
   const started = Date.now();
+  let signals: Signals;
   try {
     const response = await callJev(
       {
@@ -148,29 +182,17 @@ export async function decideTurn(
         has_image: hasImage,
         retry: Boolean(extras.retry),
         previous_lane: extras.previousLane ?? null,
+        ...(extras.previousTask && { previous_task: redact(extras.previousTask, 512) }),
       },
       policy,
     );
-    const signals = answersToSignals(response.answers || {}, hasImage);
-    return applyPolicy(policy, signals, {
-      jev_ms: Date.now() - started,
-      prompt_chars: redacted.length,
-    });
-  } catch {
-    const signals = fallbackSignals(redacted, hasImage);
-    const decision = applyPolicy(policy, signals, {
-      jev_ms: Date.now() - started,
-      prompt_chars: redacted.length,
-      degraded: true,
-    });
-    const fallback = policy.lanes[policy.on_jev_down];
-    if (fallback) {
-      decision.lane = policy.on_jev_down;
-      decision.model = fallback.model;
-      decision.effort = fallback.effort;
-    }
-    decision.reason = ["Jev unavailable, using fallback lane", ...decision.reason];
-    decision.degraded = true;
-    return decision;
+    signals = answersToSignals(answerRecord(response, "response").answers, hasImage);
+  } catch (err) {
+    if (!(err instanceof JevUnavailable)) throw err;
+    return fallbackTurn(policy, redacted, hasImage, "Jev unavailable or invalid, using fallback lane", Date.now() - started);
   }
+  return applyPolicy(policy, signals, {
+    jev_ms: Date.now() - started,
+    prompt_chars: redacted.length,
+  });
 }

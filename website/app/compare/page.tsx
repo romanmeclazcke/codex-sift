@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { InstallActions } from "@/components/InstallActions";
 import { ArticleJsonLd } from "@/components/JsonLd";
+import { CLI_COMPARISON } from "@/lib/benchmark-data";
 import { POLICY_URL } from "@/lib/content";
 
 const title = "Manual Codex model switching vs Codex Sift";
@@ -33,7 +34,7 @@ export default function Compare() {
         </table>
       </div>
       <h2 className="text-2xl font-semibold">What we measured</h2>
-      <p>On three short CLI questions with exact answers, all strategies scored 3/3. The Sift-selected models used 54,458 input tokens, compared with 57,922 under manual selection and 59,654 when always using the stronger lane. Sift took 17.7 seconds across those runs, versus 16.3 seconds manually and 16.0 seconds with the fixed model. These are single-run results on short questions. Use your own representative tasks to evaluate edits and cost.</p>
+      <p>We ran {CLI_COMPARISON.tasks} short CLI questions with exact answers once per strategy. The table in the benchmark gives scores, elapsed time and reported tokens for the fixed, manual and Sift-selected strategies. The repository task suite measures whether edits pass independent tests.</p>
       <p><Link className="underline" href="/benchmark">Read the methodology and raw measurements</Link> or <a className="underline" href={POLICY_URL}>inspect the default routing policy</a>.</p>
       <h2 className="text-2xl font-semibold">Try it on your workflow</h2>
       <p>With Node.js 20+, Codex CLI, and a TypeSafe key, run setup and launch <code>npx codex-sift</code>. Try a file question and an edit. Check the chosen model with <code>npx codex-sift explain</code>. You can pin a model with <code>/model</code> and select Sift again to resume routing.</p>

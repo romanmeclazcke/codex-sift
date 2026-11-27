@@ -54,6 +54,7 @@ export function loadBundledCatalog(codexBin: string): Catalog {
   const result = spawnSync(codexBin, ["debug", "models", "--bundled"], {
     encoding: "utf8",
     maxBuffer: 20 * 1024 * 1024,
+    timeout: 5000,
   });
   if (result.status !== 0) {
     throw new Error(result.stderr || "codex debug models --bundled failed");
@@ -67,7 +68,7 @@ export function cachedCatalogPath(codexVersion: string): string {
 
 export function ensureInjectedCatalog(codexBin: string, policy: Policy): string {
   mkdirSync(siftHome(), { recursive: true });
-  const version = spawnSync(codexBin, ["--version"], { encoding: "utf8" }).stdout.trim() || "unknown";
+  const version = spawnSync(codexBin, ["--version"], { encoding: "utf8", timeout: 5000 }).stdout?.trim() || "unknown";
   const path = cachedCatalogPath(version);
   if (existsSync(path)) return path;
   const injected = injectVirtualModel(loadBundledCatalog(codexBin), policy);

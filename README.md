@@ -15,6 +15,10 @@ Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/
 
 ## How much usage can Codex Sift save?
 
+**Codex Sift used 51.7% fewer total Codex tokens** in a live repository benchmark on November 27, 2026. Across three tasks repeated three times per strategy, input plus output fell from **1,349,986 to 652,498 tokens** compared with always using `gpt-5.6-sol` at high reasoning effort. Both strategies passed all nine runs. Sift passed 9/9 on the first attempt versus 8/9 for the fixed model, and cut mean time to passing tests by **28.3%** (70.8 s to 50.8 s).
+
+Input includes cached tokens. Sift used **51.8% fewer input tokens** and **43.0% fewer output tokens**, while uncached input increased **45.7%**. The run measured CLI tokens and elapsed time. Billed cost, subscription quota and Jev usage were outside its scope. [Per-run measurements](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/task-completion.json) · [Tasks and methodology](https://github.com/romanmeclazcke/codex-sift/tree/main/benchmarks/task-completion)
+
 **Codex Sift used 48.8% less estimated Codex quota** in a November 26, 2026 routing test on 12 representative requests, compared with sending every request to the `forge` lane (`gpt-5.6-sol`, high reasoning effort). The routing policy estimates quota from model and reasoning-effort weights. The estimate is specific to this workload and policy. [Full routing report and per-request results](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/e2e-routing.md)
 
 ![Estimated quota over 12 requests: 16.20 units on always-forge and 8.30 units with Codex Sift](assets/readme/quota.png)
@@ -22,6 +26,8 @@ Sift is a model router for the [OpenAI Codex CLI](https://developers.openai.com/
 In a separate live Codex CLI test on three short coding questions, the models selected by Sift used **8.7% fewer input tokens** than always using `forge` (54,458 vs. 59,654). Both strategies answered **3/3** correctly. Sift took 17.7 seconds in total and the fixed model took 16.0 seconds. Each strategy ran once, and the input counts include cached tokens. [Benchmark methodology and comparison](https://codex-sift.vercel.app/benchmark) · [Raw CLI measurements](https://github.com/romanmeclazcke/codex-sift/blob/main/reports/model-comparison.json)
 
 To reproduce the routing test with your TypeSafe API key, run `npm ci` and `npm run e2e:report` from the repository.
+
+The repository benchmark compares first-try success, completion, elapsed time, and reported tokens on repeated coding tasks. Run `npm run benchmark:tasks:smoke` after `npm ci` to verify the harness offline. [Fixtures and benchmark methodology](benchmarks/task-completion/README.md)
 
 The problem is simple: coding sessions mix tiny asks, everyday implementation, and genuinely hard work. Running every turn on the strongest model is easy, but it spends premium quota on prompts like “explain this file”, “run the tests”, or “rename this helper”. Sift adds a small decision layer before Codex spends the turn.
 
@@ -146,28 +152,31 @@ Or, from inside Codex, use `$sift-explain`.
 | `codex-sift setup` | Onboarding: pick lane models by number |
 | `codex-sift models` | Print the numbered Codex catalog |
 | `codex-sift` | Interactive Codex with routing |
-| `codex-sift route "…"` | Decide a lane; do not start Codex |
-| `codex-sift explain` | Print the last decision |
-| `codex-sift report` | Quota saved vs always-forge (`--live`, `--since=today`, `--json`) |
+| `codex-sift route "…"` | Preview a routing decision |
+| `codex-sift explain` | Show the last route and its latest observed response |
+| `codex-sift report` | See lane mix, request outcomes, measured tokens, and policy-weighted savings |
 | `codex-sift demo` | Classify a sample coding day with Jev; no Codex usage |
 | `codex-sift doctor` | Codex binary, auth, Jev key |
 | `codex-sift init` | Copy `policy.yaml` to `~/.codex-sift/` |
 | `--sift-off` | Bypass the proxy for one invocation |
 
-Inside Codex, `$sift-explain` (skill installed on launch) reads `~/.codex-sift/last.json`.
+Inside Codex, `$sift-explain` runs `codex-sift explain`. A `route` preview is visible in `explain` and excluded from the report.
 
 ## Show the savings
 
-Codex with a ChatGPT subscription bills **quota**, not API invoices. Sift’s claim is: the same coding day uses fewer forge-tier turns.
-
-1. Work normally through `codex-sift` for a session.
-2. In another terminal:
+After a session through `codex-sift`, run:
 
 ```bash
-codex-sift report --live --since=today
+codex-sift report --since=today
+codex-sift report --session=latest
+codex-sift report --baseline=gpt-5.6-terra --baseline-effort=medium --json
 ```
 
-That prints lane mix and “usage vs always-Sol”. Degraded turns (Jev down) are excluded so the number is not inflated.
+The report counts completed, failed, incomplete, and canceled requests. It includes upstream latency and totals for the token fields the provider returned. `--session=latest` shows the decisions, continuations, and per-request outcomes for the latest session. Use `--session=<id>` with a session ID from the report to inspect an earlier session. Add `--live` to filter to live classifier decisions.
+
+The savings estimate compares the policy weight of each eligible route with the policy weight of its baseline model and effort. It uses the weights saved at decision time. The default comparison is the Forge lane from the same policy. `--baseline=<model>` sets a model at medium effort, and `--baseline-effort=<effort>` sets the effort explicitly. Negative savings mean the routes used more estimated units than the baseline. The estimate includes live classifier tasks whose latest observed response completed. Legacy decisions are counted separately because their logs did not capture outcomes or weights.
+
+Sift stores decision metadata in `decisions.jsonl` and per-request metadata in `outcomes.jsonl` under `SIFT_HOME`. Prompts, tool content, responses, and credentials are omitted by default. Set `SIFT_LOG_PROMPT_PREVIEW=1` to store a short preview with recognized secret patterns redacted. Earlier versions may have left raw previews in existing log files. The regular report and `explain` omit those legacy previews.
 
 To show the idea without burning Codex quota, Jev-classify a canned day:
 
@@ -229,7 +238,8 @@ statusLine = "node /absolute/path/to/codex-sift/scripts/statusline.js"
 | `TYPESAFE_API_KEY` | Jev credentials |
 | `TYPESAFE_BASE_URL` | Override, default `https://api.typesafe.ai` |
 | `SIFT_POLICY` | Extra YAML overlay |
-| `SIFT_HOME` | Default `~/.codex-sift` |
+| `SIFT_HOME` | Directory for local policy and telemetry. Defaults to `~/.codex-sift` |
+| `SIFT_LOG_PROMPT_PREVIEW=1` | Store a short, redacted prompt preview in local telemetry |
 | `SIFT_DISABLED=1` | Disable routing |
 | `CODEX_BIN` | Codex executable if it is not on `PATH` |
 | `SIFT_CHATGPT_ORIGIN` / `SIFT_OPENAI_ORIGIN` | Test upstreams |

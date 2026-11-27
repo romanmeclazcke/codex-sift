@@ -1,3 +1,5 @@
+import { TOKEN_RESULT, ROUTING_BENCHMARK } from "@/lib/benchmark-data";
+
 export const REPO_URL = "https://github.com/romanmeclazcke/codex-sift";
 export const REPO_SLUG = "romanmeclazcke/codex-sift";
 export const README_URL = `${REPO_URL}#readme`;
@@ -35,9 +37,10 @@ export const FAQ = [
     q: "Does Codex Sift change the Codex TUI?",
     a: "No. Sift launches Codex through a loopback model_provider. Sessions, tools and sandbox stay native to Codex.",
   },
+  ...(TOKEN_RESULT ? [{ q: "How many tokens did Codex Sift save in the repository benchmark?", a: TOKEN_RESULT }] : []),
   {
     q: "How much quota can routing save?",
-    a: "On twelve live Jev prompts in reports/e2e-routing.md, estimated quota fell from 16.2 to 8.3 versus an always-forge baseline, a 48.8% cut. That measures routing cost, not answer quality.",
+    a: `In a ${ROUTING_BENCHMARK.turns}-prompt routing test, the policy estimated ${ROUTING_BENCHMARK.saved}% less relative quota than always using forge. The estimate uses model and reasoning-effort weights.`,
   },
   {
     q: "Who built Codex Sift?",
@@ -58,8 +61,6 @@ export type LaneInfo = {
   use: string;
   short: string;
   rules: string[];
-  usage: number;
-  saved: number;
   examples: readonly { prompt: string; reason: string; response: string }[];
 };
 
@@ -72,8 +73,6 @@ export const LANES: Record<LaneId, LaneInfo> = {
     use: "Questions, small ops, tiny edits",
     short: "small asks & edits",
     rules: ["greeting or chitchat", "lookup or plumbing", "localized cheap edit"],
-    usage: 0.17,
-    saved: 87.0,
     examples: [
       {
         prompt: "Rename getUser to fetchUser in src/api.ts",
@@ -99,8 +98,6 @@ export const LANES: Record<LaneId, LaneInfo> = {
     use: "Normal implementation and bounded debugging",
     short: "everyday work",
     rules: ["needs real diagnosis", "everyday implementation", "default balanced lane"],
-    usage: 0.55,
-    saved: 59.3,
     examples: [
       {
         prompt: "Extract the fetch in page.tsx into a reusable hook",
@@ -131,8 +128,6 @@ export const LANES: Record<LaneId, LaneInfo> = {
       "hard or novel work",
       "cross-cutting design",
     ],
-    usage: 1.35,
-    saved: 0,
     examples: [
       {
         prompt: "Find why the auth test fails only when the full suite runs",
@@ -163,43 +158,6 @@ export const SIGNALS = [
   "high_stakes",
   "cross_cutting",
 ] as const;
-
-export type CaseResult = {
-  id: string;
-  prompt: string;
-  lane: LaneId;
-  expected: LaneId;
-  usage: number;
-  saved: number;
-};
-
-/** The 12 representative cases from reports/e2e-routing.md (live Jev, always-forge baseline 1.35 each). */
-export const E2E_CASES: CaseResult[] = [
-  { id: "ask-basic", prompt: "what does package.json do in a Node project?", lane: "flash", expected: "flash", usage: 0.17, saved: 87.0 },
-  { id: "repo-command", prompt: "how do I run the unit tests in this repo?", lane: "flash", expected: "flash", usage: 0.17, saved: 87.0 },
-  { id: "small-rename", prompt: "rename getUser to fetchUser in src/api.ts", lane: "flash", expected: "flash", usage: 0.17, saved: 87.0 },
-  { id: "small-ui", prompt: "add a loading spinner to the submit button in LoginForm.tsx", lane: "craft", expected: "craft", usage: 0.55, saved: 59.3 },
-  { id: "react-explain", prompt: "explain what useMemo is for in this React component", lane: "flash", expected: "flash", usage: 0.17, saved: 87.0 },
-  { id: "hook-extract", prompt: "extract the fetch in page.tsx into a reusable hook", lane: "craft", expected: "craft", usage: 0.55, saved: 59.3 },
-  { id: "timezone-test", prompt: "the test formatDate.test.ts is failing on timezone, fix the assertion", lane: "craft", expected: "craft", usage: 0.55, saved: 59.3 },
-  { id: "typescript-error", prompt: "this TypeScript error: Type X is not assignable to type Y on the props", lane: "craft", expected: "craft", usage: 0.55, saved: 59.3 },
-  { id: "suite-leak", prompt: "the auth test fails only when run with the full suite, find the leak", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
-  { id: "auth-redesign", prompt: "redesign authentication across the Next.js app and the API gateway", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
-  { id: "websocket-race", prompt: "debug a race in websocket reconnect that duplicates subscriptions", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
-  { id: "prod-migration", prompt: "ship a production database migration that changes user permissions and preserves existing sessions", lane: "forge", expected: "forge", usage: 1.35, saved: 0 },
-];
-
-export const E2E_SUMMARY = {
-  cases: 12,
-  live: 12,
-  degraded: 0,
-  match: "12/12",
-  avgJevMs: 249,
-  baseline: 16.2,
-  routed: 8.3,
-  saved: 48.8,
-  mix: { flash: 4, craft: 4, forge: 4 } as Record<LaneId, number>,
-};
 
 export const STEPS = [
   {

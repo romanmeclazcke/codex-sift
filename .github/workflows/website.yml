@@ -2,9 +2,9 @@ name: website
 
 on:
   push:
-    paths: ["website/**", ".github/workflows/website.yml"]
+    paths: ["website/**", "reports/*.json", "benchmarks/task-completion/tasks.json", ".github/workflows/website.yml"]
   pull_request:
-    paths: ["website/**", ".github/workflows/website.yml"]
+    paths: ["website/**", "reports/*.json", "benchmarks/task-completion/tasks.json", ".github/workflows/website.yml"]
 
 jobs:
   build:

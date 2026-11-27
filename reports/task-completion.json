@@ -1,0 +1,813 @@
+{
+  "schema_version": 1,
+  "status": "measured",
+  "generated_at": "2026-11-27T17:56:28.545Z",
+  "setup": {
+    "source_revision": "b0b572ac51c9f4751c2c336680c3a2fde956c5d1",
+    "tracked_source_diff_sha256": "f75f29191be5fb56e48f4af25b8bebac7d768960f49f706d82f5cb49c4aecf69",
+    "policy_sha256": "5dd67f2638ccceae04874a2b855563dcfbe70207fa56b1b451b58d93e901ab61",
+    "codex_cli": "codex-cli 0.172.0",
+    "node": "v24.21.0",
+    "platform": "darwin-arm64",
+    "fixed": {
+      "model": "gpt-5.6-sol",
+      "effort": "high"
+    },
+    "sift": {
+      "flash": {
+        "model": "gpt-5.6-luna",
+        "effort": "low"
+      },
+      "craft": {
+        "model": "gpt-5.6-terra",
+        "effort": "medium"
+      },
+      "forge": {
+        "model": "gpt-5.6-sol",
+        "effort": "high"
+      }
+    },
+    "trials_per_task": 3,
+    "max_attempts": 2,
+    "attempt_timeout_ms": 300000
+  },
+  "tasks": [
+    {
+      "id": "catalog",
+      "kind": "Localized rename",
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "fixture_sha256": "5f9d7a15c96109391025d2b52f051ae1b1622ef60d994aa2c1eb46e1031d6bc4"
+    },
+    {
+      "id": "delimited",
+      "kind": "Parsing bug",
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "fixture_sha256": "a37e145b994ac183ccae34f2d64ab41cdb27bbf190e37852abbbd9088de4184a"
+    },
+    {
+      "id": "inventory",
+      "kind": "Cross-module correctness",
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "fixture_sha256": "4d0469d1c366acee492ca3891bea8e1a8a3025781d676ee72b6ce93a6eff5f14"
+    }
+  ],
+  "summary": {
+    "fixed": {
+      "trials": 9,
+      "first_try": 8,
+      "completed": 9,
+      "attempts": 10,
+      "agent_failures": 0,
+      "total_ms": 637393,
+      "mean_time_to_completion_ms": 70821,
+      "usage": {
+        "input_tokens": {
+          "total": 1322554,
+          "attempts_reported": 10
+        },
+        "cached_input_tokens": {
+          "total": 1216128,
+          "attempts_reported": 10
+        },
+        "cache_write_input_tokens": {
+          "total": 0,
+          "attempts_reported": 10
+        },
+        "output_tokens": {
+          "total": 27432,
+          "attempts_reported": 10
+        },
+        "reasoning_output_tokens": {
+          "total": 12527,
+          "attempts_reported": 10
+        }
+      },
+      "routing": null
+    },
+    "sift": {
+      "trials": 9,
+      "first_try": 9,
+      "completed": 9,
+      "attempts": 9,
+      "agent_failures": 0,
+      "total_ms": 457162,
+      "mean_time_to_completion_ms": 50796,
+      "usage": {
+        "input_tokens": {
+          "total": 636865,
+          "attempts_reported": 9
+        },
+        "cached_input_tokens": {
+          "total": 481792,
+          "attempts_reported": 9
+        },
+        "cache_write_input_tokens": {
+          "total": 0,
+          "attempts_reported": 9
+        },
+        "output_tokens": {
+          "total": 15633,
+          "attempts_reported": 9
+        },
+        "reasoning_output_tokens": {
+          "total": 5745,
+          "attempts_reported": 9
+        }
+      },
+      "routing": {
+        "live": 9,
+        "degraded": 0,
+        "attempts_without_decision": 0
+      }
+    }
+  },
+  "rows": [
+    {
+      "task": "catalog",
+      "strategy": "fixed",
+      "trial": 1,
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 33891,
+      "time_to_completion_ms": 33891,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 33823,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 66
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 123853,
+            "cached_input_tokens": 113792,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 929,
+            "reasoning_output_tokens": 45
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "catalog",
+      "strategy": "sift",
+      "trial": 1,
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 27806,
+      "time_to_completion_ms": 27806,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 27751,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 52
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 59208,
+            "cached_input_tokens": 41216,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 584,
+            "reasoning_output_tokens": 9
+          },
+          "routing": [
+            {
+              "lane": "craft",
+              "model": "gpt-5.6-terra",
+              "effort": "medium",
+              "degraded": false,
+              "jev_ms": 422
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "catalog",
+      "strategy": "sift",
+      "trial": 2,
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 25618,
+      "time_to_completion_ms": 25618,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 25563,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 53
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 59088,
+            "cached_input_tokens": 43008,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 554,
+            "reasoning_output_tokens": 7
+          },
+          "routing": [
+            {
+              "lane": "craft",
+              "model": "gpt-5.6-terra",
+              "effort": "medium",
+              "degraded": false,
+              "jev_ms": 553
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "catalog",
+      "strategy": "fixed",
+      "trial": 2,
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 25884,
+      "time_to_completion_ms": 25884,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 25830,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 53
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 102676,
+            "cached_input_tokens": 92672,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 709,
+            "reasoning_output_tokens": 26
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "catalog",
+      "strategy": "fixed",
+      "trial": 3,
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 24754,
+      "time_to_completion_ms": 24754,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 24707,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 45
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 102865,
+            "cached_input_tokens": 92928,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 810,
+            "reasoning_output_tokens": 25
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "catalog",
+      "strategy": "sift",
+      "trial": 3,
+      "base_commit": "8124b466b9f135ae27391386c43e3026c9ccf665",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 21536,
+      "time_to_completion_ms": 21536,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 21484,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 50
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 44188,
+            "cached_input_tokens": 27136,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 531,
+            "reasoning_output_tokens": 10
+          },
+          "routing": [
+            {
+              "lane": "craft",
+              "model": "gpt-5.6-terra",
+              "effort": "medium",
+              "degraded": false,
+              "jev_ms": 325
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "delimited",
+      "strategy": "sift",
+      "trial": 1,
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 38232,
+      "time_to_completion_ms": 38232,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 38172,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 58
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 77151,
+            "cached_input_tokens": 64000,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1521,
+            "reasoning_output_tokens": 346
+          },
+          "routing": [
+            {
+              "lane": "flash",
+              "model": "gpt-5.6-luna",
+              "effort": "low",
+              "degraded": false,
+              "jev_ms": 353
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "delimited",
+      "strategy": "fixed",
+      "trial": 1,
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 47277,
+      "time_to_completion_ms": 47277,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 47223,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 52
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 126699,
+            "cached_input_tokens": 116608,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1910,
+            "reasoning_output_tokens": 571
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "delimited",
+      "strategy": "fixed",
+      "trial": 2,
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 46375,
+      "time_to_completion_ms": 46375,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 46315,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 58
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 125959,
+            "cached_input_tokens": 115712,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1845,
+            "reasoning_output_tokens": 543
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "delimited",
+      "strategy": "sift",
+      "trial": 2,
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 51175,
+      "time_to_completion_ms": 51175,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 51108,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 65
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 94053,
+            "cached_input_tokens": 76032,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2043,
+            "reasoning_output_tokens": 514
+          },
+          "routing": [
+            {
+              "lane": "flash",
+              "model": "gpt-5.6-luna",
+              "effort": "low",
+              "degraded": false,
+              "jev_ms": 723
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "delimited",
+      "strategy": "sift",
+      "trial": 3,
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 30182,
+      "time_to_completion_ms": 30182,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 30129,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 50
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 60016,
+            "cached_input_tokens": 43776,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1178,
+            "reasoning_output_tokens": 294
+          },
+          "routing": [
+            {
+              "lane": "flash",
+              "model": "gpt-5.6-luna",
+              "effort": "low",
+              "degraded": false,
+              "jev_ms": 334
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "delimited",
+      "strategy": "fixed",
+      "trial": 3,
+      "base_commit": "e06a52eb5e32df986452de3df72281cb57e9b129",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 50477,
+      "time_to_completion_ms": 50477,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 50425,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 51
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 126277,
+            "cached_input_tokens": 116096,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 1948,
+            "reasoning_output_tokens": 683
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "inventory",
+      "strategy": "fixed",
+      "trial": 1,
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 131990,
+      "time_to_completion_ms": 131990,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 131933,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 56
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 187890,
+            "cached_input_tokens": 175872,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 6339,
+            "reasoning_output_tokens": 4014
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "inventory",
+      "strategy": "sift",
+      "trial": 1,
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 83499,
+      "time_to_completion_ms": 83499,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 83450,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 48
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 82402,
+            "cached_input_tokens": 63232,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 2908,
+            "reasoning_output_tokens": 1299
+          },
+          "routing": [
+            {
+              "lane": "craft",
+              "model": "gpt-5.6-terra",
+              "effort": "medium",
+              "degraded": false,
+              "jev_ms": 387
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "inventory",
+      "strategy": "sift",
+      "trial": 2,
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 91983,
+      "time_to_completion_ms": 91983,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 91929,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 52
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 80623,
+            "cached_input_tokens": 61184,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3139,
+            "reasoning_output_tokens": 1566
+          },
+          "routing": [
+            {
+              "lane": "craft",
+              "model": "gpt-5.6-terra",
+              "effort": "medium",
+              "degraded": false,
+              "jev_ms": 326
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task": "inventory",
+      "strategy": "fixed",
+      "trial": 2,
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 97272,
+      "time_to_completion_ms": 97272,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 97216,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 55
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 134073,
+            "cached_input_tokens": 123136,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4601,
+            "reasoning_output_tokens": 2310
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "inventory",
+      "strategy": "fixed",
+      "trial": 3,
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "first_try": false,
+      "completed": true,
+      "total_ms": 179473,
+      "time_to_completion_ms": 179473,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 85591,
+          "grader": {
+            "passed": false,
+            "status": "tests_failed",
+            "elapsed_ms": 69
+          },
+          "passed": false,
+          "usage": {
+            "input_tokens": 132481,
+            "cached_input_tokens": 121856,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3959,
+            "reasoning_output_tokens": 1704
+          },
+          "routing": []
+        },
+        {
+          "number": 2,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 93753,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 54
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 159781,
+            "cached_input_tokens": 147456,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 4382,
+            "reasoning_output_tokens": 2606
+          },
+          "routing": []
+        }
+      ]
+    },
+    {
+      "task": "inventory",
+      "strategy": "sift",
+      "trial": 3,
+      "base_commit": "8b139cba492ac0fb6625cbb480061d5eef08a825",
+      "first_try": true,
+      "completed": true,
+      "total_ms": 87131,
+      "time_to_completion_ms": 87131,
+      "attempts": [
+        {
+          "number": 1,
+          "agent_status": "completed",
+          "exit_code": 0,
+          "signal": null,
+          "agent_ms": 87076,
+          "grader": {
+            "passed": true,
+            "status": "passed",
+            "elapsed_ms": 52
+          },
+          "passed": true,
+          "usage": {
+            "input_tokens": 80136,
+            "cached_input_tokens": 62208,
+            "cache_write_input_tokens": 0,
+            "output_tokens": 3175,
+            "reasoning_output_tokens": 1700
+          },
+          "routing": [
+            {
+              "lane": "craft",
+              "model": "gpt-5.6-terra",
+              "effort": "medium",
+              "degraded": false,
+              "jev_ms": 426
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
