@@ -1,0 +1,844 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Codex Sift · Resultados del benchmark</title><style>*{box-sizing:border-box}body{margin:0;color:#172c35;background:#fff;font:17px/1.65 system-ui,sans-serif}main{max-width:900px;margin:auto;padding:clamp(20px,5vw,64px)}h1{font:600 clamp(32px,5vw,55px)/1.1 Georgia,serif;letter-spacing:-.035em;border-top:5px solid #14716d;padding-top:24px}h2{font-size:24px;margin:40px 0 14px;color:#155d59}table{width:100%;border-collapse:collapse;font-size:15px;font-variant-numeric:tabular-nums}td,th{border-bottom:1px solid #ccd9d8;padding:12px 9px;text-align:right}td:first-child,th:first-child{text-align:left}th{background:#edf5f3}td:not(:first-child){white-space:nowrap}.scroll,pre{overflow:auto}details{margin-top:16px}summary{cursor:pointer;color:#155d59}pre{font-size:13px;max-height:45vh}code{font-size:.9em}@media print{main{max-width:none;padding:0}details{display:none}tr{break-inside:avoid}}</style><main><h1>Codex Sift redujo un 28,3 % el tiempo medio para resolver las tareas del benchmark</h1><p><strong>Benchmark del 27 de noviembre de 2026.</strong> Codex Sift elige el modelo y el nivel de razonamiento para cada pedido de programación. En tres tareas de repositorio, repetidas tres veces cada una, Sift resolvió las nueve ejecuciones al primer intento. Usar siempre <code>gpt-5.6-sol</code> con razonamiento alto también resolvió las nueve, con un reintento. El tiempo medio hasta pasar las pruebas de aceptación bajó de <strong>70,8 a 50,8 segundos</strong>. En el conjunto de las nueve ejecuciones, la diferencia fue de <strong>3 minutos</strong>.</p><h2>Resultados medidos</h2><div class="scroll"><table><tr><th>Métrica</th><th>Modelo fijo</th><th>Codex Sift</th><th>Cambio frente al modelo fijo</th></tr><tr><td>Ejecuciones que pasaron las pruebas</td><td>9/9</td><td>9/9</td><td>Igual</td></tr><tr><td>Ejecuciones que pasaron al primer intento</td><td>8/9</td><td>9/9</td><td>Un reintento menos</td></tr><tr><td>Tiempo medio hasta pasar las pruebas</td><td>70,8 s</td><td>50,8 s</td><td>−28,3 %</td></tr><tr><td>Tokens de entrada, incluida la caché</td><td>1.322.554</td><td>636.865</td><td>−51,8 %</td></tr><tr><td>Tokens de entrada sin caché</td><td>106.426</td><td>155.073</td><td>+45,7 %</td></tr><tr><td>Tokens de salida</td><td>27.432</td><td>15.633</td><td>−43,0 %</td></tr><tr><td>Total de entrada y salida</td><td>1.349.986</td><td>652.498</td><td>−51,7 %</td></tr></table></div><p>La reducción del <strong>51,7 %</strong> corresponde al volumen de tokens reportado por Codex. La fila de entrada sin caché es un subconjunto de la entrada total. El modelo fijo reutilizó más contexto en caché, por lo que una estimación económica requeriría valorar por separado la entrada en caché, la entrada sin caché y la salida de cada modelo, además del consumo de Jev. La cuota facturada quedó fuera de la medición.</p><h2>Dónde se ganó tiempo</h2><div class="scroll"><table><tr><th>Tarea</th><th>Modelo elegido por Sift</th><th>Tiempo medio con modelo fijo</th><th>Tiempo medio con Sift</th></tr><tr><td>Renombrar una función exportada y actualizar su consumidor</td><td><code>gpt-5.6-terra</code> · medio</td><td>28,2 s</td><td>25,0 s</td></tr><tr><td>Corregir un parser CSV para comillas y campos con comas</td><td><code>gpt-5.6-luna</code> · bajo</td><td>48,0 s</td><td>39,9 s</td></tr><tr><td>Hacer atómicas las transferencias concurrentes de inventario</td><td><code>gpt-5.6-terra</code> · medio</td><td>136,2 s</td><td>87,5 s</td></tr></table></div><p>Inventario concentró la mayor diferencia: <strong>48,7 segundos menos por ejecución</strong>. Las pruebas verificaron que las transferencias superpuestas conservaran el stock y que un fallo de escritura dejara intactos ambos saldos. Sift pasó las tres repeticiones al primer intento. El modelo fijo necesitó un segundo intento en una de ellas. Las nueve decisiones de Sift usaron el clasificador Jev en vivo.</p><h2>Cómo se hizo la comparación</h2><p>Cada par de ejecuciones partió del mismo commit de un repositorio de prueba, con el mismo pedido y los mismos límites. Se alternó el orden de las estrategias y se permitieron hasta dos intentos. Un evaluador independiente ejecutó las pruebas originales y las de aceptación sobre los archivos modificados. El tiempo incluye arranque, clasificación cuando corresponde, edición, evaluación y reintentos.</p><p>El resultado describe tres tareas sintéticas con Codex CLI 0.172.0 y Node.js 24.21.0 en macOS ARM64. Las repeticiones permiten observar variación dentro de esas tareas. Para estimar el beneficio en otro equipo o producto habría que medir su propia mezcla de trabajo.</p><details><summary>Datos por ejecución</summary><pre>{
+  &quot;schema_version&quot;: 1,
+  &quot;status&quot;: &quot;measured&quot;,
+  &quot;generated_at&quot;: &quot;2026-11-27T17:56:28.545Z&quot;,
+  &quot;setup&quot;: {
+    &quot;source_revision&quot;: &quot;b0b572ac51c9f4751c2c336680c3a2fde956c5d1&quot;,
+    &quot;tracked_source_diff_sha256&quot;: &quot;f75f29191be5fb56e48f4af25b8bebac7d768960f49f706d82f5cb49c4aecf69&quot;,
+    &quot;policy_sha256&quot;: &quot;5dd67f2638ccceae04874a2b855563dcfbe70207fa56b1b451b58d93e901ab61&quot;,
+    &quot;codex_cli&quot;: &quot;codex-cli 0.172.0&quot;,
+    &quot;node&quot;: &quot;v24.21.0&quot;,
+    &quot;platform&quot;: &quot;darwin-arm64&quot;,
+    &quot;fixed&quot;: {
+      &quot;model&quot;: &quot;gpt-5.6-sol&quot;,
+      &quot;effort&quot;: &quot;high&quot;
+    },
+    &quot;sift&quot;: {
+      &quot;flash&quot;: {
+        &quot;model&quot;: &quot;gpt-5.6-luna&quot;,
+        &quot;effort&quot;: &quot;low&quot;
+      },
+      &quot;craft&quot;: {
+        &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+        &quot;effort&quot;: &quot;medium&quot;
+      },
+      &quot;forge&quot;: {
+        &quot;model&quot;: &quot;gpt-5.6-sol&quot;,
+        &quot;effort&quot;: &quot;high&quot;
+      }
+    },
+    &quot;trials_per_task&quot;: 3,
+    &quot;max_attempts&quot;: 2,
+    &quot;attempt_timeout_ms&quot;: 300000
+  },
+  &quot;tasks&quot;: [
+    {
+      &quot;id&quot;: &quot;catalog&quot;,
+      &quot;kind&quot;: &quot;Localized rename&quot;,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;fixture_sha256&quot;: &quot;5f9d7a15c96109391025d2b52f051ae1b1622ef60d994aa2c1eb46e1031d6bc4&quot;
+    },
+    {
+      &quot;id&quot;: &quot;delimited&quot;,
+      &quot;kind&quot;: &quot;Parsing bug&quot;,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;fixture_sha256&quot;: &quot;a37e145b994ac183ccae34f2d64ab41cdb27bbf190e37852abbbd9088de4184a&quot;
+    },
+    {
+      &quot;id&quot;: &quot;inventory&quot;,
+      &quot;kind&quot;: &quot;Cross-module correctness&quot;,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;fixture_sha256&quot;: &quot;4d0469d1c366acee492ca3891bea8e1a8a3025781d676ee72b6ce93a6eff5f14&quot;
+    }
+  ],
+  &quot;summary&quot;: {
+    &quot;fixed&quot;: {
+      &quot;trials&quot;: 9,
+      &quot;first_try&quot;: 8,
+      &quot;completed&quot;: 9,
+      &quot;attempts&quot;: 10,
+      &quot;agent_failures&quot;: 0,
+      &quot;total_ms&quot;: 637393,
+      &quot;mean_time_to_completion_ms&quot;: 70821,
+      &quot;usage&quot;: {
+        &quot;input_tokens&quot;: {
+          &quot;total&quot;: 1322554,
+          &quot;attempts_reported&quot;: 10
+        },
+        &quot;cached_input_tokens&quot;: {
+          &quot;total&quot;: 1216128,
+          &quot;attempts_reported&quot;: 10
+        },
+        &quot;cache_write_input_tokens&quot;: {
+          &quot;total&quot;: 0,
+          &quot;attempts_reported&quot;: 10
+        },
+        &quot;output_tokens&quot;: {
+          &quot;total&quot;: 27432,
+          &quot;attempts_reported&quot;: 10
+        },
+        &quot;reasoning_output_tokens&quot;: {
+          &quot;total&quot;: 12527,
+          &quot;attempts_reported&quot;: 10
+        }
+      },
+      &quot;routing&quot;: null
+    },
+    &quot;sift&quot;: {
+      &quot;trials&quot;: 9,
+      &quot;first_try&quot;: 9,
+      &quot;completed&quot;: 9,
+      &quot;attempts&quot;: 9,
+      &quot;agent_failures&quot;: 0,
+      &quot;total_ms&quot;: 457162,
+      &quot;mean_time_to_completion_ms&quot;: 50796,
+      &quot;usage&quot;: {
+        &quot;input_tokens&quot;: {
+          &quot;total&quot;: 636865,
+          &quot;attempts_reported&quot;: 9
+        },
+        &quot;cached_input_tokens&quot;: {
+          &quot;total&quot;: 481792,
+          &quot;attempts_reported&quot;: 9
+        },
+        &quot;cache_write_input_tokens&quot;: {
+          &quot;total&quot;: 0,
+          &quot;attempts_reported&quot;: 9
+        },
+        &quot;output_tokens&quot;: {
+          &quot;total&quot;: 15633,
+          &quot;attempts_reported&quot;: 9
+        },
+        &quot;reasoning_output_tokens&quot;: {
+          &quot;total&quot;: 5745,
+          &quot;attempts_reported&quot;: 9
+        }
+      },
+      &quot;routing&quot;: {
+        &quot;live&quot;: 9,
+        &quot;degraded&quot;: 0,
+        &quot;attempts_without_decision&quot;: 0
+      }
+    }
+  },
+  &quot;rows&quot;: [
+    {
+      &quot;task&quot;: &quot;catalog&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 1,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 33891,
+      &quot;time_to_completion_ms&quot;: 33891,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 33823,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 66
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 123853,
+            &quot;cached_input_tokens&quot;: 113792,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 929,
+            &quot;reasoning_output_tokens&quot;: 45
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;catalog&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 1,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 27806,
+      &quot;time_to_completion_ms&quot;: 27806,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 27751,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 52
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 59208,
+            &quot;cached_input_tokens&quot;: 41216,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 584,
+            &quot;reasoning_output_tokens&quot;: 9
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;craft&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+              &quot;effort&quot;: &quot;medium&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 422
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;catalog&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 2,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 25618,
+      &quot;time_to_completion_ms&quot;: 25618,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 25563,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 53
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 59088,
+            &quot;cached_input_tokens&quot;: 43008,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 554,
+            &quot;reasoning_output_tokens&quot;: 7
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;craft&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+              &quot;effort&quot;: &quot;medium&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 553
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;catalog&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 2,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 25884,
+      &quot;time_to_completion_ms&quot;: 25884,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 25830,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 53
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 102676,
+            &quot;cached_input_tokens&quot;: 92672,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 709,
+            &quot;reasoning_output_tokens&quot;: 26
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;catalog&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 3,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 24754,
+      &quot;time_to_completion_ms&quot;: 24754,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 24707,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 45
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 102865,
+            &quot;cached_input_tokens&quot;: 92928,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 810,
+            &quot;reasoning_output_tokens&quot;: 25
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;catalog&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 3,
+      &quot;base_commit&quot;: &quot;8124b466b9f135ae27391386c43e3026c9ccf665&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 21536,
+      &quot;time_to_completion_ms&quot;: 21536,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 21484,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 50
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 44188,
+            &quot;cached_input_tokens&quot;: 27136,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 531,
+            &quot;reasoning_output_tokens&quot;: 10
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;craft&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+              &quot;effort&quot;: &quot;medium&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 325
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;delimited&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 1,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 38232,
+      &quot;time_to_completion_ms&quot;: 38232,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 38172,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 58
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 77151,
+            &quot;cached_input_tokens&quot;: 64000,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 1521,
+            &quot;reasoning_output_tokens&quot;: 346
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;flash&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-luna&quot;,
+              &quot;effort&quot;: &quot;low&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 353
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;delimited&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 1,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 47277,
+      &quot;time_to_completion_ms&quot;: 47277,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 47223,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 52
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 126699,
+            &quot;cached_input_tokens&quot;: 116608,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 1910,
+            &quot;reasoning_output_tokens&quot;: 571
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;delimited&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 2,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 46375,
+      &quot;time_to_completion_ms&quot;: 46375,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 46315,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 58
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 125959,
+            &quot;cached_input_tokens&quot;: 115712,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 1845,
+            &quot;reasoning_output_tokens&quot;: 543
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;delimited&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 2,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 51175,
+      &quot;time_to_completion_ms&quot;: 51175,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 51108,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 65
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 94053,
+            &quot;cached_input_tokens&quot;: 76032,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 2043,
+            &quot;reasoning_output_tokens&quot;: 514
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;flash&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-luna&quot;,
+              &quot;effort&quot;: &quot;low&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 723
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;delimited&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 3,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 30182,
+      &quot;time_to_completion_ms&quot;: 30182,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 30129,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 50
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 60016,
+            &quot;cached_input_tokens&quot;: 43776,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 1178,
+            &quot;reasoning_output_tokens&quot;: 294
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;flash&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-luna&quot;,
+              &quot;effort&quot;: &quot;low&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 334
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;delimited&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 3,
+      &quot;base_commit&quot;: &quot;e06a52eb5e32df986452de3df72281cb57e9b129&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 50477,
+      &quot;time_to_completion_ms&quot;: 50477,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 50425,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 51
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 126277,
+            &quot;cached_input_tokens&quot;: 116096,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 1948,
+            &quot;reasoning_output_tokens&quot;: 683
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;inventory&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 1,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 131990,
+      &quot;time_to_completion_ms&quot;: 131990,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 131933,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 56
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 187890,
+            &quot;cached_input_tokens&quot;: 175872,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 6339,
+            &quot;reasoning_output_tokens&quot;: 4014
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;inventory&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 1,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 83499,
+      &quot;time_to_completion_ms&quot;: 83499,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 83450,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 48
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 82402,
+            &quot;cached_input_tokens&quot;: 63232,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 2908,
+            &quot;reasoning_output_tokens&quot;: 1299
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;craft&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+              &quot;effort&quot;: &quot;medium&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 387
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;inventory&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 2,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 91983,
+      &quot;time_to_completion_ms&quot;: 91983,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 91929,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 52
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 80623,
+            &quot;cached_input_tokens&quot;: 61184,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 3139,
+            &quot;reasoning_output_tokens&quot;: 1566
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;craft&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+              &quot;effort&quot;: &quot;medium&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 326
+            }
+          ]
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;inventory&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 2,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 97272,
+      &quot;time_to_completion_ms&quot;: 97272,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 97216,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 55
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 134073,
+            &quot;cached_input_tokens&quot;: 123136,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 4601,
+            &quot;reasoning_output_tokens&quot;: 2310
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;inventory&quot;,
+      &quot;strategy&quot;: &quot;fixed&quot;,
+      &quot;trial&quot;: 3,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;first_try&quot;: false,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 179473,
+      &quot;time_to_completion_ms&quot;: 179473,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 85591,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: false,
+            &quot;status&quot;: &quot;tests_failed&quot;,
+            &quot;elapsed_ms&quot;: 69
+          },
+          &quot;passed&quot;: false,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 132481,
+            &quot;cached_input_tokens&quot;: 121856,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 3959,
+            &quot;reasoning_output_tokens&quot;: 1704
+          },
+          &quot;routing&quot;: []
+        },
+        {
+          &quot;number&quot;: 2,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 93753,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 54
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 159781,
+            &quot;cached_input_tokens&quot;: 147456,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 4382,
+            &quot;reasoning_output_tokens&quot;: 2606
+          },
+          &quot;routing&quot;: []
+        }
+      ]
+    },
+    {
+      &quot;task&quot;: &quot;inventory&quot;,
+      &quot;strategy&quot;: &quot;sift&quot;,
+      &quot;trial&quot;: 3,
+      &quot;base_commit&quot;: &quot;8b139cba492ac0fb6625cbb480061d5eef08a825&quot;,
+      &quot;first_try&quot;: true,
+      &quot;completed&quot;: true,
+      &quot;total_ms&quot;: 87131,
+      &quot;time_to_completion_ms&quot;: 87131,
+      &quot;attempts&quot;: [
+        {
+          &quot;number&quot;: 1,
+          &quot;agent_status&quot;: &quot;completed&quot;,
+          &quot;exit_code&quot;: 0,
+          &quot;signal&quot;: null,
+          &quot;agent_ms&quot;: 87076,
+          &quot;grader&quot;: {
+            &quot;passed&quot;: true,
+            &quot;status&quot;: &quot;passed&quot;,
+            &quot;elapsed_ms&quot;: 52
+          },
+          &quot;passed&quot;: true,
+          &quot;usage&quot;: {
+            &quot;input_tokens&quot;: 80136,
+            &quot;cached_input_tokens&quot;: 62208,
+            &quot;cache_write_input_tokens&quot;: 0,
+            &quot;output_tokens&quot;: 3175,
+            &quot;reasoning_output_tokens&quot;: 1700
+          },
+          &quot;routing&quot;: [
+            {
+              &quot;lane&quot;: &quot;craft&quot;,
+              &quot;model&quot;: &quot;gpt-5.6-terra&quot;,
+              &quot;effort&quot;: &quot;medium&quot;,
+              &quot;degraded&quot;: false,
+              &quot;jev_ms&quot;: 426
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+</pre></details><details><summary>Metodología y reproducción</summary><pre># Repository task completion benchmark
+
+The suite compares the bundled policy’s fixed forge model and reasoning effort with the normal Codex Sift proxy using live Jev. It covers three small, reproducible Git repositories with different kinds of work. The [task manifest](tasks.json) contains the exact task prompts and the source files the grader accepts. Each fixture uses the Node.js test runner and the standard library.
+
+## Run the benchmark
+
+Use Node.js 20+, Git with SHA-1 object format support, and the current fixture and policy files from a checkout of this repository.
+
+```sh
+npm ci
+npm run benchmark:tasks:smoke
+```
+
+The smoke uses a deterministic local stand-in. It verifies that each public suite passes on the base commit, the separate acceptance checks reject the base, the supplied passing changes are recognized, retries and terminal failures are counted, and missing token fields remain unavailable. It makes no model or classifier requests.
+
+For live measurements, sign into the Codex CLI with ChatGPT or `codex login --with-api-key` and configure `TYPESAFE_API_KEY` in the environment or with `codex-sift setup`. Use the same account and provider settings for the two arms.
+
+```sh
+npm run benchmark:tasks -- --live --trials 3 --out reports/task-completion.json
+```
+
+The live command can contact Codex and Jev and consume usage. With three tasks and three trials per strategy, it runs 18–36 Codex attempts and one Jev classification per routed attempt that reaches the proxy. `--timeout-seconds` caps each agent attempt and defaults to 300. The runner writes a versioned JSON report after all trials. A failed preflight leaves an existing report intact. `--out` can write to a separate path while reviewing a run.
+
+## Trial and scoring rules
+
+- Each task runs with both strategies in paired trials. Their order alternates by task and trial. The runner builds an independent Git repository at the same deterministic base commit for each strategy and trial. Both strategies get the same prompt, time limit and workspace-write sandbox. Each starts an ephemeral Codex session with user config and user rules ignored.
+- Up to two attempts count toward completion. A retry keeps the first attempt’s working tree and starts a fresh CLI invocation with the same generic retry instruction. A pass requires a completed Codex attempt, a recorded proxy decision for Sift, and a successful independent grade. The grade copies only the named source files into a separate directory and runs the original public tests and the acceptance tests. Test-file edits in the agent checkout have no effect on the score. The public benchmark includes its acceptance tests for reproducibility.
+- First-try and completion rates use all trials, including CLI and infrastructure failures. Time to completion includes agent startup, routing, editing, grading and retries, excluding fixture preparation. Failed trials have no time to completion and contribute to total wall time. The report also records individual attempt and grader durations.
+- When Codex reports token usage, the report stores input, cached input, cache-write input, output and reasoning output fields separately. Totals include retries and failed attempts with usage. Missing fields stay null, and each total carries the count of attempts with reported values so partial totals remain visible. Sift records per-attempt live and fallback decisions and the number of attempts without a decision. The report measures CLI usage rather than subscription quota, bills or TypeSafe consumption.
+- The report records the runner’s source revision, a digest for tracked source changes, Node and Codex versions, policy digests, model and reasoning settings, fixture hashes, base commits, and each attempt’s outcomes. Model versions, provider cache state and authentication can affect reproduction. The workload is three synthetic repos and supports conclusions about these tasks and settings.
+</pre></details></main></html>

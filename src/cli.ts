@@ -22,7 +22,7 @@ Usage:
   codex-sift models              List Codex models as 1, 2, 3
   codex-sift route "prompt"      Decide a lane without calling Codex
   codex-sift explain             Show the last routing decision
-  codex-sift report              Lane mix and estimated Codex quota saved
+  codex-sift report              Lane mix, outcomes, measured tokens, and estimated savings
   codex-sift demo                Classify a sample coding day (Jev only)
   codex-sift e2e                 Programming-prompt battery vs always-forge
   codex-sift doctor              Check Codex, auth, and Jev
@@ -33,11 +33,20 @@ Environment:
   SIFT_POLICY          Extra policy YAML path
   SIFT_HOME            Default ~/.codex-sift
   SIFT_DISABLED=1      Bypass routing
+  SIFT_LOG_PROMPT_PREVIEW=1  Store a short, redacted prompt preview locally
   CODEX_BIN            Codex executable
 
 Flags:
   --sift-off           Forward this invocation to Codex unchanged
   --sift-lane=forge    Skip Jev and pin a lane for this invocation
+
+Report flags:
+  --live               Select decisions made with the live classifier
+  --since=today        Select decisions since today or an ISO date
+  --json               Print machine-readable totals
+  --session=latest|<id>  Show the tasks and requests for one session
+  --baseline=<model>   Use this model at medium effort as the comparison
+  --baseline-effort=<effort>  Override the comparison effort
 `;
 
 async function main(argv: string[]): Promise<number> {
@@ -75,7 +84,7 @@ async function runRoute(args: string[]): Promise<number> {
   }
   const policy = loadPolicy();
   const decision = await decideTurn(policy, prompt);
-  writeDecision(decision, prompt);
+  writeDecision(decision, prompt, { source: "preview" });
   if (jsonMode) {
     process.stdout.write(`${JSON.stringify(decision, null, 2)}\n`);
     return 0;

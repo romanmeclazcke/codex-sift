@@ -1,16 +1,20 @@
+import { randomUUID } from "node:crypto";
 import http from "node:http";
 import { URL } from "node:url";
 import { injectIntoUnknown } from "./catalog.js";
-import { decideTurn } from "./jev.js";
-import { writeDecision } from "./log.js";
-import type { Decision, Policy, SessionPin } from "./types.js";
+import { decideTurn, fallbackTurn } from "./jev.js";
+import { writeDecision, writeOutcome } from "./log.js";
+import { redact } from "./redact.js";
+import type { Decision, Policy } from "./types.js";
 import {
-  conversationKey,
-  hasImage,
-  isNewUserTurn,
-  lastUserText,
+  hash,
+  inspectTurn,
+  isRecord,
+  previousResponseId,
+  requestIdentity,
   requestModel,
   rewriteModel,
+  taskRelation,
 } from "./turns.js";
 import {
   classifyPath,
@@ -21,6 +25,31 @@ import {
   requestUpstream,
   upstreamFor,
 } from "./upstream.js";
+
+type TaskPin = {
+  sessionId: string;
+  taskId: string;
+  turnId?: string;
+  fingerprint?: string;
+  context: string;
+  decision: Promise<Decision>;
+  completed: boolean;
+};
+
+type Pins = {
+  sessions: Map<string, TaskPin>;
+  turns: Map<string, TaskPin>;
+  responses: Map<string, TaskPin>;
+};
+
+function remember(map: Map<string, TaskPin>, key: string, pin: TaskPin): void {
+  map.delete(key);
+  map.set(key, pin);
+  if (map.size > 4096) {
+    const oldest = map.keys().next().value;
+    if (oldest !== undefined) map.delete(oldest);
+  }
+}
 
 function readBody(req: http.IncomingMessage): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -41,11 +70,11 @@ function json(res: http.ServerResponse, status: number, payload: unknown): void 
 }
 
 export function startProxy(policy: Policy): Promise<{ server: http.Server; port: number; url: string }> {
-  const sessions = new Map<string, SessionPin>();
+  const pins: Pins = { sessions: new Map(), turns: new Map(), responses: new Map() };
 
   const server = http.createServer(async (req, res) => {
     try {
-      await handle(req, res, policy, sessions);
+      await handle(req, res, policy, pins);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       if (!res.headersSent) {
@@ -78,7 +107,7 @@ async function handle(
   req: http.IncomingMessage,
   res: http.ServerResponse,
   policy: Policy,
-  sessions: Map<string, SessionPin>,
+  pins: Pins,
 ): Promise<void> {
   const incoming = new URL(req.url || "/", "http://127.0.0.1");
   const kind = classifyPath(incoming.pathname);
@@ -98,45 +127,87 @@ async function handle(
   }
 
   const raw = await readBody(req);
-  let parsed: Record<string, unknown> = {};
+  let parsed: unknown;
+  const headers = forwardHeaders(req.headers, targetUrl.host);
   try {
-    parsed = JSON.parse(raw.toString("utf8") || "{}") as Record<string, unknown>;
+    parsed = JSON.parse(raw.toString("utf8"));
   } catch {
-    pipeUpstream(targetUrl, method, forwardHeaders(req.headers, targetUrl.host), raw, req, res);
+    pipeUpstream(targetUrl, method, headers, raw, req, res);
     return;
   }
 
-  const virtual = policy.virtual_model.slug;
-  const model = requestModel(parsed);
-  const key = conversationKey(parsed);
-  const pin = sessions.get(key);
-  let outbound = parsed;
-  let decision: Decision | null = null;
-
-  if (model && model !== virtual) {
-    // User pinned a real model in /model. Do not route.
-  } else if (!isNewUserTurn(parsed) && pin) {
-    outbound = rewriteModel(parsed, pin.decision.model, pin.decision.effort);
-    decision = pin.decision;
-  } else if (model === virtual || !model) {
-    const prompt = lastUserText(parsed);
-    const retry = Boolean(pin && pin.decision.lane === "flash");
-    decision = await decideTurn(policy, prompt, {
-      hasImage: hasImage(parsed),
-      retry,
-      previousLane: pin?.decision.lane,
-    });
-    outbound = rewriteModel(parsed, decision.model, decision.effort);
-    sessions.set(key, { conversationKey: key, lastUserText: prompt, decision });
-    writeDecision(decision, prompt);
+  if (!isRecord(parsed) || (requestModel(parsed) && requestModel(parsed) !== policy.virtual_model.slug)) {
+    pipeUpstream(targetUrl, method, headers, raw, req, res);
+    return;
   }
 
+  const { latest, first, prior, isUserTurn, historyDepth } = inspectTurn(parsed);
+  const identity = requestIdentity(parsed, req.headers);
+  const scope = hash(JSON.stringify([targetUrl.origin, req.headers.authorization, req.headers["chatgpt-account-id"]]));
+  const sessionKey = identity.session
+    ? `${scope}:session:${hash(identity.session)}`
+    : first && `${scope}:history:${first.fingerprint}`;
+  const turnKey = identity.turn && `${identity.session ? sessionKey : scope}:turn:${hash(identity.turn)}`;
+  const parentId = previousResponseId(parsed);
+  const parent = parentId ? pins.responses.get(`${scope}:${parentId}`) : undefined;
+  const knownSession = sessionKey ? pins.sessions.get(sessionKey) : undefined;
+  const priorPin = parent ?? (identity.session || !isUserTurn || historyDepth > 1 ? knownSession : undefined);
+  const turnPin = turnKey ? pins.turns.get(turnKey) : undefined;
+  const sameTurn = identity.turn === undefined || priorPin?.turnId === identity.turn;
+  const fingerprint = latest && `${historyDepth}:${latest.fingerprint}`;
+  const repeating = isUserTurn && priorPin && !priorPin.completed && sameTurn && priorPin.fingerprint === fingerprint;
+  let pin = turnPin ?? (repeating || !isUserTurn ? priorPin : undefined);
+  const requestKind = pin ? "continuation" : "initial";
+  if (!pin) {
+    const prompt = latest?.text ?? "";
+    const relation = taskRelation(prompt);
+    const previousTask = relation === "new" ? undefined : parent?.context || prior?.text || priorPin?.context;
+    const sessionId = priorPin?.sessionId ?? randomUUID();
+    const taskId = randomUUID();
+    const decide = async () => {
+      if (!isUserTurn) {
+        return fallbackTurn(policy, prompt, latest?.hasImage ?? false, "No pinned route for this continuation, using fallback lane");
+      }
+      const previousLane = relation === "new" ? undefined : (await priorPin?.decision)?.lane;
+      return decideTurn(policy, prompt, {
+        hasImage: latest?.hasImage,
+        retry: relation === "retry",
+        previousLane,
+        previousTask,
+      });
+    };
+
+    pin = {
+      sessionId,
+      taskId,
+      turnId: identity.turn,
+      fingerprint,
+      context: redact(previousTask || prompt, 512),
+      decision: decide().then((selected) => {
+        writeDecision(selected, prompt, { session_id: sessionId, task_id: taskId, policy });
+        return selected;
+      }),
+      completed: false,
+    };
+    if (sessionKey) remember(pins.sessions, sessionKey, pin);
+    if (turnKey) remember(pins.turns, turnKey, pin);
+  }
+
+  const selected = await pin.decision;
+  const outbound = rewriteModel(parsed, selected.model, selected.effort);
   const payload = Buffer.from(JSON.stringify(outbound));
-  const headers = forwardHeaders(req.headers, targetUrl.host);
   headers["content-length"] = payload.length;
   headers["content-type"] = "application/json";
-  pipeUpstream(targetUrl, method, headers, payload, req, res);
-  void decision;
+  const task = pin;
+  pipeUpstream(targetUrl, method, headers, payload, req, res, {
+    onResponseId(id) {
+      remember(pins.responses, `${scope}:${id}`, task);
+    },
+    onComplete(result) {
+      if (result.outcome === "completed") task.completed = true;
+      writeOutcome({ session_id: task.sessionId, task_id: task.taskId, request_kind: requestKind, ...result });
+    },
+  });
 }
 
 async function proxyModels(

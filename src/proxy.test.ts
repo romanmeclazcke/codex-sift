@@ -68,3 +68,110 @@ test("proxy rewrites sift model before forwarding a user turn", async () => {
     else process.env.SIFT_OPENAI_ORIGIN = prevOrigin;
   }
 });
+
+test("classifies user tasks, redacts follow-up context, and preserves the route across response IDs", async (t) => {
+  const originalEnv = { ...process.env };
+  const states: Array<Record<string, unknown>> = [];
+  const forwarded: Array<Record<string, unknown>> = [];
+  const upstream = await listen(async (req, res) => {
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) chunks.push(Buffer.from(chunk));
+    const body = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+    if (req.url === "/v1/systemone") {
+      states.push(body.state);
+      const task = body.state.task;
+      const talk = task === "hello";
+      res.setHeader("content-type", "application/json");
+      if (task === "invalid classification") {
+        res.end(JSON.stringify({ answers: {} }));
+        return;
+      }
+      res.end(JSON.stringify({
+        answers: {
+          task_kind: { type: "choice", choice: talk ? "ask" : "edit", confidence: 0.9 },
+          difficulty: { type: "score", score: talk ? 0.2 : 2.9, confidence: 0.9 },
+          needs_reasoning: { type: "noul", noul: 0.1 },
+          needs_planning: { type: "noul", noul: 0.1 },
+          high_stakes: { type: "noul", noul: 0.1 },
+          cross_cutting: { type: "noul", noul: 0.1 },
+          is_chitchat: { type: "noul", noul: talk ? 0.9 : 0.1 },
+        },
+      }));
+      return;
+    }
+    forwarded.push(body);
+    const id = "resp_" + forwarded.length;
+    if (forwarded.length === 2) {
+      res.setHeader("content-type", "application/json");
+      res.end(JSON.stringify({ id, status: "completed" }));
+      return;
+    }
+    res.setHeader("content-type", "text/event-stream");
+    for (const type of ["response.created", "response.completed"]) {
+      res.write("event: " + type + "\ndata: " + JSON.stringify({ type, response: { id } }) + "\n\n");
+    }
+    res.end();
+  });
+  t.after(() => new Promise<void>((resolve) => upstream.server.close(() => resolve())));
+  process.env.TYPESAFE_BASE_URL = upstream.origin;
+  process.env.TYPESAFE_API_KEY = "test-key";
+  process.env.SIFT_OPENAI_ORIGIN = upstream.origin;
+  process.env.SIFT_HOME = mkdtempSync(join(tmpdir(), "codex-sift-"));
+  t.after(() => { process.env = originalEnv; });
+  const policy = loadPolicy();
+  const proxy = await startProxy(policy);
+  t.after(() => new Promise<void>((resolve) => proxy.server.close(() => resolve())));
+
+  async function respond(input: unknown, headers: Record<string, string> = {}, previous?: string, model = "sift") {
+    const response = await fetch(proxy.url + "/v1/responses", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...headers },
+      body: JSON.stringify({ model, input, previous_response_id: previous }),
+    });
+    assert.equal(response.status, 200);
+    await response.text();
+  }
+
+  await respond("hello", { "session-id": "test-session" });
+  const design = "Design the query index for password=SyntheticSecret and " + "x".repeat(600);
+  await respond(design, { "session-id": "test-session" });
+  await respond([{ type: "function_call_output", output: "tool output" }], {}, "resp_2");
+  await respond([{ type: "function_call_output", output: "second tool output" }], {}, "resp_3");
+  await respond("sí implementalo", {}, "resp_4");
+  await respond("seguí", {}, "resp_5");
+  await respond("probá de nuevo", {}, "resp_6");
+  await respond("invalid classification", {}, "resp_7");
+  await respond("explicit model", {}, undefined, "manual-model");
+  const codexTurn = (id: string) => ({
+    "x-codex-turn-metadata": JSON.stringify({ thread_id: "thread", session_id: "session", turn_id: id }),
+  });
+  await respond("hello", codexTurn("first"));
+  await respond("hello", codexTurn("first"));
+  await respond("hello", codexTurn("second"));
+
+  assert.equal(states.length, 8);
+  assert.deepEqual(states[1], {
+    task: design.replace("password=SyntheticSecret", "password=[redacted]"),
+    has_image: false,
+    retry: false,
+    previous_lane: null,
+  });
+  assert.equal(states[2].task, "sí implementalo");
+  assert.equal(states[2].retry, false);
+  assert.equal(states[2].previous_lane, "forge");
+  const context = states[2].previous_task;
+  assert.equal(typeof context, "string");
+  assert.ok(String(context).startsWith("Design the query index for password=[redacted]"));
+  assert.ok(String(context).endsWith("[truncated]"));
+  assert.equal(states[3].previous_task, context);
+  assert.equal(states[3].retry, false);
+  assert.equal(states[4].previous_task, context);
+  assert.equal(states[4].retry, true);
+  assert.deepEqual(forwarded.map(({ model }) => model), [
+    policy.lanes.flash.model,
+    ...Array(6).fill(policy.lanes.forge.model),
+    policy.lanes[policy.on_jev_down].model,
+    "manual-model",
+    ...Array(3).fill(policy.lanes.flash.model),
+  ]);
+});

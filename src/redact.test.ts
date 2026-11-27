@@ -10,6 +10,12 @@ test("redacts keys, tokens, and connection strings", () => {
     "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9abc",
     "postgres://user:pass@host/db",
     "API_KEY=supersecretvalue",
+    'API_KEY="another secret with spaces"',
+    '{"token": "a secret in JSON"}',
+    "mongodb+srv://user:anotherpassword@example.test/db",
+    "https://user:secretpath@example.test",
+    "OPENAI_API_KEY=local-test-key",
+    "AWS_SECRET_ACCESS_KEY=local-test-secret",
   ].join("\n");
   const out = redact(input);
   assert.equal(out.includes("sk-abcdefghijklmnopqrstuvwxyz"), false);
@@ -18,4 +24,10 @@ test("redacts keys, tokens, and connection strings", () => {
   assert.match(out, /redacted/);
   assert.equal(out.includes("postgres://user:pass@host/db"), false);
   assert.equal(out.includes("supersecretvalue"), false);
+  assert.equal(out.includes("another secret with spaces"), false);
+  assert.equal(out.includes("a secret in JSON"), false);
+  assert.equal(out.includes("anotherpassword"), false);
+  assert.equal(out.includes("secretpath"), false);
+  assert.equal(out.includes("local-test-key"), false);
+  assert.equal(out.includes("local-test-secret"), false);
 });

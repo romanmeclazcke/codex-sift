@@ -55,9 +55,3 @@ export type Decision = {
   jev_ms: number;
   prompt_chars: number;
 };
-
-export type SessionPin = {
-  conversationKey: string;
-  lastUserText: string;
-  decision: Decision;
-};
